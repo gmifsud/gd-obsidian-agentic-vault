@@ -1,118 +1,140 @@
-import { Brain, Cpu, Zap, Lock, Unlock, CheckCircle2, RefreshCw } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, Link, useParams } from 'react-router-dom';
+import { Brain, FileText, Folder, Menu, X } from 'lucide-react';
+import { getVaultFiles, VaultFile } from './lib/vault';
+import { MarkdownViewer } from './components/MarkdownViewer';
 
-export default function App() {
+function VaultLayout({ files, children }: { files: VaultFile[], children: React.ReactNode }) {
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // Group files by top-level directory
+  const groupedFiles = files.reduce((acc, file) => {
+    const parts = file.path.split('/').filter(Boolean);
+    const folder = parts.length > 1 ? parts[0] : 'Root';
+    if (!acc[folder]) acc[folder] = [];
+    acc[folder].push(file);
+    return acc;
+  }, {} as Record<string, VaultFile[]>);
+
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-300 p-8 font-sans">
-      <div className="max-w-5xl mx-auto space-y-8">
-        <header className="border-b border-neutral-800 pb-6">
-          <h1 className="text-3xl font-bold text-neutral-100 tracking-tight">Agentic Vault Architect</h1>
-          <p className="text-neutral-400 mt-2">Phase 6: Dynamic MOC Synchronization</p>
-        </header>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Split-Brain Architecture */}
-          <section className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 shadow-lg flex flex-col">
-            <h2 className="text-xl font-semibold text-neutral-100 mb-6 flex items-center gap-2">
-              <Brain className="w-6 h-6 text-purple-400" />
-              The Split-Brain Vault Model
-            </h2>
-            
-            <div className="space-y-6 flex-grow">
-              {/* Left Hemisphere */}
-              <div className="bg-neutral-950/50 p-5 rounded-lg border border-neutral-800 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-blue-300 font-semibold flex items-center gap-2">
-                    Left Hemisphere
-                    <span className="text-xs bg-blue-900/50 text-blue-200 px-2 py-0.5 rounded-full">Human</span>
-                  </h3>
-                  <Lock className="w-4 h-4 text-neutral-500" />
-                </div>
-                <p className="text-xs text-neutral-400 mb-3">Raw input, daily logs, unstructured thoughts. <strong className="text-neutral-300">AI is READ-ONLY.</strong></p>
-                <ul className="text-sm font-mono text-neutral-300 space-y-1">
-                  <li>📁 01_Daily_Notes/</li>
-                  <li>📁 02_Human_Thoughts/</li>
-                </ul>
-              </div>
-
-              {/* Right Hemisphere */}
-              <div className="bg-neutral-950/50 p-5 rounded-lg border border-neutral-800 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-emerald-300 font-semibold flex items-center gap-2">
-                    Right Hemisphere
-                    <span className="text-xs bg-emerald-900/50 text-emerald-200 px-2 py-0.5 rounded-full">AI Agent</span>
-                  </h3>
-                  <Unlock className="w-4 h-4 text-emerald-500" />
-                </div>
-                <p className="text-xs text-neutral-400 mb-3">Structured knowledge, SOPs, automation. <strong className="text-neutral-300">AI is READ/WRITE.</strong></p>
-                <ul className="text-sm font-mono text-neutral-300 space-y-1 grid grid-cols-2 gap-x-4">
-                  <li>📁 00_MOCs/</li>
-                  <li>📁 10_Repositories/</li>
-                  <li>📁 20_DevOps/</li>
-                  <li>📁 30_Git/</li>
-                  <li>📁 80_Templates/</li>
-                  <li>📁 90_Assets/</li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          {/* Agent Memory & Workflows */}
-          <div className="space-y-8 flex flex-col">
-            {/* Dynamic MOC Sync */}
-            <section className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 shadow-lg">
-              <h2 className="text-xl font-semibold text-neutral-100 mb-4 flex items-center gap-2">
-                <RefreshCw className="w-5 h-5 text-cyan-400" />
-                Dynamic MOC Sync Protocol
-              </h2>
-              <p className="text-sm text-neutral-400 mb-4">
-                Agents are now equipped with a Node.js script (`scripts/update_moc.js`) and strict prompt instructions to automatically update Maps of Content when new files are created.
-              </p>
-              <div className="bg-neutral-950 border border-neutral-800 rounded-lg p-4">
-                <pre className="text-xs font-mono text-neutral-300 whitespace-pre-wrap leading-relaxed">
-<span className="text-purple-400 font-bold"># MOC Update Protocol</span>
-Whenever you create a new file in the Right Hemisphere, you MUST dynamically update the corresponding MOC.
-
-<span className="text-blue-300">- Automated:</span> Run `node scripts/update_moc.js &lt;path/to/new/file.md&gt;`
-<span className="text-blue-300">- Manual:</span> Open the relevant MOC, locate `## Static Agent Index`, and append: `- [[File Name]] | key: value`
-                </pre>
-              </div>
-            </section>
-
-            {/* Workflows */}
-            <section className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 shadow-lg flex-grow">
-              <h2 className="text-xl font-semibold text-neutral-100 mb-4 flex items-center gap-2">
-                <Zap className="w-5 h-5 text-yellow-400" />
-                Workflow Logic
-              </h2>
-              
-              <div className="space-y-4">
-                <div className="border-l-2 border-yellow-500 pl-4">
-                  <h3 className="text-sm font-bold text-neutral-200 font-mono">/new [input]</h3>
-                  <p className="text-xs text-neutral-400 mt-1">
-                    <strong>Logic:</strong> Agent reads raw input &rarr; Selects template &rarr; Generates structured markdown &rarr; Saves to Right Hemisphere &rarr; <span className="text-cyan-400 font-semibold">Executes `update_moc.js` to sync MOC.</span>
-                  </p>
-                </div>
-                
-                <div className="border-l-2 border-yellow-500 pl-4">
-                  <h3 className="text-sm font-bold text-neutral-200 font-mono">/today</h3>
-                  <p className="text-xs text-neutral-400 mt-1">
-                    <strong>Logic:</strong> Agent scans `01_Daily_Notes/` &rarr; Extracts tasks &rarr; Cross-references with Right Hemisphere &rarr; Outputs prioritized task list.
-                  </p>
-                </div>
-              </div>
-            </section>
-          </div>
+    <div className="flex h-screen bg-neutral-950 text-neutral-300 font-sans overflow-hidden">
+      {/* Sidebar */}
+      <div className={`${sidebarOpen ? 'w-72' : 'w-0'} transition-all duration-300 border-r border-neutral-800 bg-neutral-900 overflow-y-auto flex-shrink-0 flex flex-col`}>
+        <div className="p-4 border-b border-neutral-800 flex items-center gap-2 sticky top-0 bg-neutral-900 z-10">
+          <Brain className="w-6 h-6 text-purple-400" />
+          <h1 className="font-bold text-neutral-100 truncate">Agentic Vault</h1>
         </div>
-
-        <div className="mt-8 p-4 bg-emerald-950/30 border border-emerald-900/50 rounded-lg text-emerald-200 text-sm flex items-center justify-between shadow-inner">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-            <p><strong>Phase 6 Complete.</strong> The Dynamic MOC Synchronization mechanism (Node script + Agent Prompts) is fully integrated.</p>
-          </div>
+        <div className="p-4 space-y-6 flex-grow">
+          {Object.entries(groupedFiles).sort().map(([folder, folderFiles]) => (
+            <div key={folder}>
+              <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+                <Folder className="w-3 h-3" />
+                {folder}
+              </h2>
+              <ul className="space-y-1">
+                {folderFiles.map(file => (
+                  <li key={file.path}>
+                    <Link 
+                      to={`/note/${encodeURIComponent(file.basename)}`}
+                      className="flex items-center gap-2 text-sm text-neutral-400 hover:text-blue-400 hover:bg-neutral-800/50 px-2 py-1.5 rounded transition-colors truncate"
+                    >
+                      <FileText className="w-3.5 h-3.5 flex-shrink-0" />
+                      <span className="truncate">{file.basename}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
       </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <header className="h-14 border-b border-neutral-800 bg-neutral-950 flex items-center px-4 flex-shrink-0">
+          <button 
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-2 hover:bg-neutral-800 rounded text-neutral-400 hover:text-neutral-100 transition-colors"
+          >
+            {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </header>
+        <main className="flex-1 overflow-y-auto p-8">
+          <div className="max-w-4xl mx-auto">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
+  );
+}
+
+function NotePage({ files }: { files: VaultFile[] }) {
+  const { basename } = useParams();
+  const file = files.find(f => f.basename === basename);
+
+  if (!file) {
+    return (
+      <div className="text-center py-20">
+        <h2 className="text-2xl font-bold text-neutral-500">Note not found</h2>
+        <p className="text-neutral-600 mt-2">The note "{basename}" does not exist in the vault.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="animate-in fade-in duration-500">
+      <header className="mb-8 pb-4 border-b border-neutral-800">
+        <h1 className="text-4xl font-bold text-neutral-100 mb-4">{file.basename}</h1>
+        {Object.keys(file.frontmatter).length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(file.frontmatter).map(([key, value]) => (
+              <span key={key} className="text-xs px-2 py-1 bg-neutral-900 border border-neutral-800 rounded text-neutral-400">
+                <strong className="text-neutral-300">{key}:</strong> {Array.isArray(value) ? value.join(', ') : String(value)}
+              </span>
+            ))}
+          </div>
+        )}
+      </header>
+      <MarkdownViewer content={file.content} />
+    </div>
+  );
+}
+
+function HomePage() {
+  return (
+    <div className="py-10">
+      <h1 className="text-4xl font-bold text-neutral-100 mb-4">Welcome to the Vault</h1>
+      <p className="text-neutral-400 text-lg">
+        Select a note from the sidebar to begin exploring your Split-Brain knowledge graph.
+      </p>
+    </div>
+  );
+}
+
+export default function App() {
+  const [files, setFiles] = useState<VaultFile[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getVaultFiles().then(loadedFiles => {
+      setFiles(loadedFiles);
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) {
+    return <div className="h-screen flex items-center justify-center bg-neutral-950 text-neutral-400">Loading Vault...</div>;
+  }
+
+  return (
+    <BrowserRouter>
+      <VaultLayout files={files}>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/note/:basename" element={<NotePage files={files} />} />
+        </Routes>
+      </VaultLayout>
+    </BrowserRouter>
   );
 }

@@ -1,6 +1,11 @@
 # Agent Memory & System Prompt
 
-You are an AI Agent (e.g., Gemini, Claude Code, Aider, Codex, Cursor) operating within a "Split-Brain" Obsidian Vault.
+You are an AI Agent (e.g., Gemini, Claude Code, Aider, Codex, Copilot, Cursor) operating within a "Split-Brain" Obsidian Vault.
+
+## Supported Agents & Functionalities
+Different AI agents can be leveraged within this vault based on their strengths:
+- **Codex & Copilot**: Best utilized for inline code generation, scaffolding YAML frontmatter, and writing automation scripts (e.g., `scripts/update_moc.js`). They excel at translating raw human thoughts from the Left Hemisphere into structured DevOps pipelines, Git workflows, or CLI commands in the Right Hemisphere.
+- **Gemini, Claude Code, Aider, & Cursor**: Ideal for broader vault refactoring, executing multi-step custom commands (like `/new` or `/today`), and maintaining MOC indexes through complex reasoning and file-system operations.
 
 ## Vault Architecture: The Split-Brain Model
 
