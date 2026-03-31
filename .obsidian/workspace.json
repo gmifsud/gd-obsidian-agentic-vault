@@ -1,0 +1,229 @@
+{
+  "main": {
+    "id": "c96f4d78e3d09cb1",
+    "type": "split",
+    "children": [
+      {
+        "id": "706ff7e9c512e105",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "df6657c6351c151e",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "93173f9a487ba7ec",
+    "type": "split",
+    "children": [
+      {
+        "id": "92bf35ae3d29e978",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f158cde52de83507",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "8d3d72406b1a85f5",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "9b55beb853d576a0",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "91ed7f77eeaef61b",
+    "type": "split",
+    "children": [
+      {
+        "id": "9e9c2f0379c1241d",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "c092bdebef42ade9",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks"
+            }
+          },
+          {
+            "id": "b31f799a056fcfb5",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links"
+            }
+          },
+          {
+            "id": "0c348c1ffa42190e",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "44156982f1b6a4a5",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "696c3a3a0e1a4164",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "f158cde52de83507",
+  "lastOpenFiles": [
+    "ToInclude/START HERE.md",
+    "ToInclude/README.md",
+    "ToInclude/LICENSE",
+    "ToInclude/skills/obsidian-markdown/references/PROPERTIES.md",
+    "ToInclude/skills/obsidian-markdown/references/EMBEDS.md",
+    "ToInclude/skills/obsidian-markdown/references/CALLOUTS.md",
+    "ToInclude/skills/obsidian-bases/references/FUNCTIONS_REFERENCE.md",
+    "ToInclude/skills/json-canvas/references/EXAMPLES.md",
+    "ToInclude/skills/obsidian-markdown/references",
+    "ToInclude/skills/obsidian-markdown/SKILL.md",
+    "ToInclude/skills/obsidian-cli/SKILL.md",
+    "ToInclude/skills/obsidian-bases/SKILL.md",
+    "ToInclude/skills/obsidian-bases/references",
+    "ToInclude/skills/json-canvas/SKILL.md",
+    "ToInclude/skills/json-canvas/references",
+    "ToInclude/skills/defuddle/SKILL.md",
+    "ToInclude/skills/obsidian-markdown",
+    "ToInclude/skills/obsidian-cli",
+    "ToInclude/skills/obsidian-bases",
+    "ToInclude/skills/json-canvas",
+    "ToInclude/skills/defuddle",
+    "ToInclude/skills",
+    "ToInclude/06 Toolkit/Images/thumbnails/youtube/9QEJzzVVDCU.webp",
+    "ToInclude/06 Toolkit/Images/thumbnails/external/cfc8974d72c73bd294c54540269221f7.jpg",
+    "ToInclude/06 Toolkit/Images/thumbnails/external/bfff9cac0162e80d243cf62f738993bd.jpg",
+    "ToInclude/06 Toolkit/Images/thumbnails/external/877835f2ae7912c6bcc4d2a7e10d4e1a.jpg",
+    "ToInclude/06 Toolkit/Images/thumbnails/external/6d91c509793f8cc647223746d1a8c7e9.jpg",
+    "ToInclude/06 Toolkit/Images/thumbnails/external/51f3a6cb7cd10c0563ce3d1ee873f9b6.jpg",
+    "ToInclude/06 Toolkit/Images/thumbnails/resized/f69ae54b3a4f758167da1829a723ece3_86cf658e.webp",
+    "ToInclude/06 Toolkit/Images/thumbnails/external/4177c42b36a2a3d9db82bcf1ba92df28.jpg",
+    "ToInclude/06 Toolkit/Images/thumbnails/resized/aadd2366c1690b4e750912893767f7e8_86cf658e.webp",
+    "ToInclude/06 Toolkit/Images/thumbnails/resized/15a3ddf1061d6dd8d26a79a8080c52e6_86cf658e.webp",
+    "ToInclude/06 Toolkit/Snippets/MetaBindSnippets/MetaBind Main Navigation.md",
+    "ToInclude/06 Toolkit/Templates/Tools Template.md",
+    "ToInclude/06 Toolkit/Templates/Weekly Review Template.md",
+    "ToInclude/06 Toolkit/Templates/Fleeting Note Template.md",
+    "ToInclude/06 Toolkit/Templates/Templates.md",
+    "ToInclude/06 Toolkit/Templates/People Template.md",
+    "ToInclude/06 Toolkit/Templates/Monthly Review Template.md",
+    "ToInclude/06 Toolkit/Templates/Literature Note Template.md",
+    "ToInclude/06 Toolkit/Templates/Learning Template.md",
+    "ToInclude/06 Toolkit/Templates/Idea Template.md",
+    "ToInclude/06 Toolkit/Templates/Distilled Note Template.md",
+    "ToInclude/06 Toolkit/Templates/Daily Note Template.md",
+    "ToInclude/06 Toolkit/Templates/Concept Template.md",
+    "ToInclude/06 Toolkit/06 Toolkit.md",
+    "ToInclude/03 Spaces/Canvas Mind Maps/Untitled.canvas"
+  ]
+}
