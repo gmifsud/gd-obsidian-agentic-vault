@@ -19,3 +19,7 @@ TABLE agent_summary, environment, criticality
 FROM "20_DevOps"
 WHERE type = "devops_resource"
 ```
+
+## Static Agent Index
+- [[Infra - Kubernetes Cluster]] | environment: prod | tech_stack: Kubernetes,Docker
+- [[Pipe - CI Build and Deploy]] | environment: all | tech_stack: GitHub Actions,Docker

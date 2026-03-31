@@ -6,3 +6,8 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Obsidian Workspace State
+.obsidian/workspace
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
