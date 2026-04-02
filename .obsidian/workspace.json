@@ -1,37 +1,42 @@
 {
   "main": {
-    "id": "c96f4d78e3d09cb1",
+    "id": "5c8e5ceff5bb50bf",
     "type": "split",
     "children": [
       {
-        "id": "706ff7e9c512e105",
+        "id": "bd4ddf8daeb1efa5",
         "type": "tabs",
         "children": [
           {
-            "id": "df6657c6351c151e",
+            "id": "1d2f6c734762075b",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "02_Human_Thoughts/README.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "README"
             }
           }
-        ]
+        ],
+        "stacked": true
       }
     ],
     "direction": "vertical"
   },
   "left": {
-    "id": "93173f9a487ba7ec",
+    "id": "f23a5296fafac93e",
     "type": "split",
     "children": [
       {
-        "id": "92bf35ae3d29e978",
+        "id": "68423098322419a3",
         "type": "tabs",
         "children": [
           {
-            "id": "f158cde52de83507",
+            "id": "5ec3facab638f060",
             "type": "leaf",
             "state": {
               "type": "file-explorer",
@@ -44,7 +49,7 @@
             }
           },
           {
-            "id": "8d3d72406b1a85f5",
+            "id": "d697ead5e0d440c9",
             "type": "leaf",
             "state": {
               "type": "search",
@@ -61,7 +66,7 @@
             }
           },
           {
-            "id": "9b55beb853d576a0",
+            "id": "acaddd6f334db560",
             "type": "leaf",
             "state": {
               "type": "bookmarks",
@@ -77,19 +82,21 @@
     "width": 300
   },
   "right": {
-    "id": "91ed7f77eeaef61b",
+    "id": "0ad95b1b240467e8",
     "type": "split",
     "children": [
       {
-        "id": "9e9c2f0379c1241d",
+        "id": "eaf4c99a59805e11",
         "type": "tabs",
+        "dimension": 76.00574712643679,
         "children": [
           {
-            "id": "c092bdebef42ade9",
+            "id": "de8e76f7517fa914",
             "type": "leaf",
             "state": {
               "type": "backlink",
               "state": {
+                "file": "START HERE.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -99,24 +106,25 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks"
+              "title": "Backlinks for START HERE"
             }
           },
           {
-            "id": "b31f799a056fcfb5",
+            "id": "751b5f4a2766e233",
             "type": "leaf",
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "START HERE.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links"
+              "title": "Outgoing links from START HERE"
             }
           },
           {
-            "id": "0c348c1ffa42190e",
+            "id": "2eeaf8b37bd80b9a",
             "type": "leaf",
             "state": {
               "type": "tag",
@@ -131,7 +139,22 @@
             }
           },
           {
-            "id": "44156982f1b6a4a5",
+            "id": "0a555d6458259e6b",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "02_Human_Thoughts/README.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of README"
+            }
+          },
+          {
+            "id": "70baa12c6d56e73d",
             "type": "leaf",
             "state": {
               "type": "all-properties",
@@ -143,87 +166,94 @@
               "icon": "lucide-archive",
               "title": "All properties"
             }
-          },
+          }
+        ],
+        "currentTab": 3
+      },
+      {
+        "id": "7f5927df3915087b",
+        "type": "tabs",
+        "dimension": 23.99425287356322,
+        "children": [
           {
-            "id": "696c3a3a0e1a4164",
+            "id": "8d65d664f487d122",
             "type": "leaf",
             "state": {
-              "type": "outline",
-              "state": {
-                "followCursor": false,
-                "showSearch": false,
-                "searchQuery": ""
-              },
-              "icon": "lucide-list",
-              "title": "Outline"
+              "type": "calendar",
+              "state": {},
+              "icon": "calendar-with-checkmark",
+              "title": "Calendar"
             }
           }
         ]
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 397.5
   },
   "left-ribbon": {
     "hiddenItems": {
+      "bases:Create new base": false,
       "switcher:Open quick switcher": false,
       "graph:Open graph view": false,
       "canvas:Create new canvas": false,
       "daily-notes:Open today's daily note": false,
       "templates:Insert template": false,
       "command-palette:Open command palette": false,
-      "bases:Create new base": false
+      "random-note:Open random note": false,
+      "workspaces:Manage workspace layouts": false,
+      "templater-obsidian:Templater": false,
+      "periodic-notes:Open today": false
     }
   },
-  "active": "f158cde52de83507",
+  "active": "1d2f6c734762075b",
   "lastOpenFiles": [
-    "ToInclude/START HERE.md",
-    "ToInclude/README.md",
-    "ToInclude/LICENSE",
-    "ToInclude/skills/obsidian-markdown/references/PROPERTIES.md",
-    "ToInclude/skills/obsidian-markdown/references/EMBEDS.md",
-    "ToInclude/skills/obsidian-markdown/references/CALLOUTS.md",
-    "ToInclude/skills/obsidian-bases/references/FUNCTIONS_REFERENCE.md",
-    "ToInclude/skills/json-canvas/references/EXAMPLES.md",
-    "ToInclude/skills/obsidian-markdown/references",
-    "ToInclude/skills/obsidian-markdown/SKILL.md",
-    "ToInclude/skills/obsidian-cli/SKILL.md",
-    "ToInclude/skills/obsidian-bases/SKILL.md",
-    "ToInclude/skills/obsidian-bases/references",
-    "ToInclude/skills/json-canvas/SKILL.md",
-    "ToInclude/skills/json-canvas/references",
-    "ToInclude/skills/defuddle/SKILL.md",
-    "ToInclude/skills/obsidian-markdown",
-    "ToInclude/skills/obsidian-cli",
-    "ToInclude/skills/obsidian-bases",
-    "ToInclude/skills/json-canvas",
-    "ToInclude/skills/defuddle",
-    "ToInclude/skills",
-    "ToInclude/06 Toolkit/Images/thumbnails/youtube/9QEJzzVVDCU.webp",
-    "ToInclude/06 Toolkit/Images/thumbnails/external/cfc8974d72c73bd294c54540269221f7.jpg",
-    "ToInclude/06 Toolkit/Images/thumbnails/external/bfff9cac0162e80d243cf62f738993bd.jpg",
-    "ToInclude/06 Toolkit/Images/thumbnails/external/877835f2ae7912c6bcc4d2a7e10d4e1a.jpg",
-    "ToInclude/06 Toolkit/Images/thumbnails/external/6d91c509793f8cc647223746d1a8c7e9.jpg",
-    "ToInclude/06 Toolkit/Images/thumbnails/external/51f3a6cb7cd10c0563ce3d1ee873f9b6.jpg",
-    "ToInclude/06 Toolkit/Images/thumbnails/resized/f69ae54b3a4f758167da1829a723ece3_86cf658e.webp",
-    "ToInclude/06 Toolkit/Images/thumbnails/external/4177c42b36a2a3d9db82bcf1ba92df28.jpg",
-    "ToInclude/06 Toolkit/Images/thumbnails/resized/aadd2366c1690b4e750912893767f7e8_86cf658e.webp",
-    "ToInclude/06 Toolkit/Images/thumbnails/resized/15a3ddf1061d6dd8d26a79a8080c52e6_86cf658e.webp",
-    "ToInclude/06 Toolkit/Snippets/MetaBindSnippets/MetaBind Main Navigation.md",
-    "ToInclude/06 Toolkit/Templates/Tools Template.md",
-    "ToInclude/06 Toolkit/Templates/Weekly Review Template.md",
-    "ToInclude/06 Toolkit/Templates/Fleeting Note Template.md",
-    "ToInclude/06 Toolkit/Templates/Templates.md",
-    "ToInclude/06 Toolkit/Templates/People Template.md",
-    "ToInclude/06 Toolkit/Templates/Monthly Review Template.md",
-    "ToInclude/06 Toolkit/Templates/Literature Note Template.md",
-    "ToInclude/06 Toolkit/Templates/Learning Template.md",
-    "ToInclude/06 Toolkit/Templates/Idea Template.md",
-    "ToInclude/06 Toolkit/Templates/Distilled Note Template.md",
-    "ToInclude/06 Toolkit/Templates/Daily Note Template.md",
-    "ToInclude/06 Toolkit/Templates/Concept Template.md",
-    "ToInclude/06 Toolkit/06 Toolkit.md",
-    "ToInclude/03 Spaces/Canvas Mind Maps/Untitled.canvas"
+    "00_MOCs/Repositories_MOC.md",
+    "claude.md",
+    "10_Repositories/README.md",
+    "20_DevOps/README.md",
+    "20_DevOps/Pipe - CI Build and Deploy.md",
+    "20_DevOps/Infra - Kubernetes Cluster.md",
+    "02_Human_Thoughts/README.md",
+    "06_Toolkit/Images/thumbnails/youtube",
+    "06_Toolkit/Images/thumbnails/resized",
+    "06_Toolkit/Images/thumbnails/external",
+    "06_Toolkit/Images/thumbnails",
+    "06_Toolkit/Snippets/MetaBindSnippets",
+    "06_Toolkit/Templates",
+    "06_Toolkit/Images",
+    "06_Toolkit/PDFs",
+    "06_Toolkit/Scripts",
+    "06_Toolkit/Snippets",
+    "99_Templates/Naming_Conventions.md",
+    "99_Templates/Git_Workflow_Template.md",
+    "99_Templates/Git_Resource_Template.md",
+    "90_Assets/README.md",
+    "README.md",
+    "AGENT_INSTRUCTIONS.md",
+    "00_MOCs/README.md",
+    "00_MOCs/Git_MOC.md",
+    "00_MOCs/DevOps_MOC.md",
+    "00_MOCs/Assets_MOC.md",
+    "00_MOCs/Agent_SOP.md",
+    "30_Git/README.md",
+    "30_Git/Git - PR Template.md",
+    "30_Git/Git - Log Formatting.md",
+    "30_Git/Git - Hotfix Workflow.md",
+    "01_Journal/README.md",
+    "00_MOCs/000_Home_MOC.md",
+    "03 Spaces/Learning/Learning.md",
+    "03 Spaces/Learning/Pauls YouTube Learning/2024-10-20 - Stop Wasting Time in Obsidian Mastering YAML properties.md",
+    "06 Toolkit/Images/thumbnails/resized/f69ae54b3a4f758167da1829a723ece3_86cf658e.webp",
+    "06 Toolkit/Images/thumbnails/external/cfc8974d72c73bd294c54540269221f7.jpg",
+    "06 Toolkit/Images/thumbnails/resized/69b07ab79944e37ba8aff0b5c248d1a5_86cf658e.webp",
+    "06 Toolkit/Images/thumbnails/external/877835f2ae7912c6bcc4d2a7e10d4e1a.jpg",
+    "06 Toolkit/Images/thumbnails/resized/10070bfd470c86fd16546dac2cdf58f2_86cf658e.webp",
+    "06 Toolkit/Images/thumbnails/external/51f3a6cb7cd10c0563ce3d1ee873f9b6.jpg",
+    "06 Toolkit/Images/thumbnails/resized/7fbce4b6b19a21a00a05242d831dfde2_86cf658e.webp",
+    "06 Toolkit/Images/thumbnails/external/4177c42b36a2a3d9db82bcf1ba92df28.jpg",
+    "06 Toolkit/Images/thumbnails/resized/15a3ddf1061d6dd8d26a79a8080c52e6_86cf658e.webp",
+    "06 Toolkit/Images/thumbnails/external/bfff9cac0162e80d243cf62f738993bd.jpg",
+    "03 Spaces/Canvas Mind Maps/Untitled.canvas"
   ]
 }
