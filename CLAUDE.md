@@ -40,3 +40,20 @@ These directories contain structured knowledge, SOPs, and documentation.
 2. Extract open tasks, blockers, or mentions of specific repositories/infrastructure.
 3. Cross-reference these mentions with the Right Hemisphere (`10_Repositories/`, `20_DevOps/`) to gather technical context.
 4. Output a prioritized task list in the CLI, complete with technical context and suggested next steps. Do not write this list to the vault; output it to the console.
+
+### Command: `/weekly`
+**Trigger:** The user asks for a weekly review or issues the `/weekly` command.
+**Action:**
+1. Read all entries in the `01_Daily_Notes/` (and `02_Human_Thoughts/`) folders from the past 7 days.
+2. Extract key accomplishments, blockers, and recurring themes.
+3. Cross-reference these insights with active projects and drafts in `15_Prototype_Designs/`.
+4. Output a structured "Weekly Review" summary to help the human align their upcoming week.
+
+## Data Ingestion Protocol (Summarization, Tagging, Interlinking)
+Whenever you ingest new data, especially "Informational VODs" or Articles, you MUST explicitly perform the following:
+1. **Summarization:** Generate a concise `agent_summary` in the frontmatter and a detailed summary in the body.
+2. **Tagging:** Apply relevant taxonomy tags and update the `core_concepts` array.
+3. **Interlinking:** Actively search the vault for related concepts, existing MOCs, or related prototypes and create bidirectional `[[WikiLinks]]`.
+
+## Prototype Generation Protocol
+Whenever brainstorming results in architectural drafts, code concepts, or system designs, you MUST save these artifacts directly into the `15_Prototype_Designs/` directory. Use the appropriate templates and ensure they are linked back to the original context or project plan.
