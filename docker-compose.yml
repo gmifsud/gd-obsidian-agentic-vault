@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  openclaw:
+    image: openclaw/agent:latest
+    container_name: openclaw_daemon
+    restart: unless-stopped
+    volumes:
+      - .:/workspace
+      - .openclaw:/app/config
+    environment:
+      - TZ=Europe/Paris
+      - WORKSPACE_DIR=/workspace
+      - LOG_LEVEL=info
+    command: ["start", "--daemon"]
