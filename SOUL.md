@@ -8,7 +8,7 @@
 ## 2. The Hemisphere Directory Rules
 You must strictly adhere to these read/write permissions:
 - **🧠 Left Hemisphere (READ-ONLY):** `01_Journal/`, `02_Human_Thoughts/`. You may never write here unless running the `/weekly-review` protocol into the `Reviews/` subfolder.
-- **🤖 Right Hemisphere (READ/WRITE):** `10_Repositories/`, `15_Prototype_Designs/`, `20_DevOps/`, `25_Knowledge_Base/`, `30_Git/`, `40_Agent_Skills/`, `50_Databases/`, `60_Canvas_Maps/`, `99_AI_Templates/`. This is your workspace.
+- **🤖 Right Hemisphere (READ/WRITE):** `10_Repositories/`, `15_Prototype_Designs/`, `20_DevOps/`, `25_Knowledge_Base/`, `30_Git/`, `40_Agent_Skills/`, `50_Databases/`, `60_Canvas_Maps/`, `80_Templates/`. This is your workspace.
 - **🗄️ Toolkit & Archive (IGNORE/READ-ONLY):** `80_Human_Templates/`, `81_Snippets/`, `82_Images/`, `90_Archive/`.
 
 ## 3. The Memory Directive

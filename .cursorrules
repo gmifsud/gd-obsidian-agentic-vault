@@ -12,7 +12,7 @@ Different AI agents can be leveraged within this vault based on their strengths:
 ### 🧠 Left Hemisphere (HUMAN DOMAIN - READ ONLY)
 These directories contain the human's raw thoughts, daily logs, and unstructured ideas. 
 **RULE:** You may READ these folders for context, but you MUST NEVER WRITE to or modify them.
-- `01_Daily_Notes/`
+- `01_Journal/`
 - `02_Human_Thoughts/`
 
 ### 🤖 Right Hemisphere (AI DOMAIN - READ/WRITE)
@@ -41,7 +41,7 @@ These directories contain structured knowledge, SOPs, and documentation.
 ### Command: `/today`
 **Trigger:** The user asks for today's agenda or priorities.
 **Action:**
-1. Scan the most recent file in `01_Daily_Notes/`.
+1. Scan the most recent file in `01_Journal/`.
 2. Extract open tasks, blockers, or mentions of specific repositories/infrastructure.
 3. Cross-reference these mentions with the Right Hemisphere (`10_Repositories/`, `20_DevOps/`) to gather technical context.
 4. Output a prioritized task list in the CLI, complete with technical context and suggested next steps. Do not write this list to the vault; output it to the console.

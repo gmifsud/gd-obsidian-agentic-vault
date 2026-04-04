@@ -13,7 +13,7 @@ We have successfully laid the foundation for an AI-native workspace using a **Sp
 ### 1. The Split-Brain Obsidian Vault
 The file system is strictly divided to prevent AI from overwriting human thoughts while giving the AI a dedicated workspace to build and organize.
 *   **Left Hemisphere (Human / Read-Only for AI):**
-    *   `01_Daily_Notes/`: Daily logs, tasks, and raw inputs.
+    *   `01_Journal/`: Daily logs, tasks, and raw inputs.
     *   `02_Human_Thoughts/`: Hobbies, career ambitions, and unstructured ideas.
 *   **Right Hemisphere (AI / Read & Write):**
     *   `00_MOCs/`: Maps of Content (dynamically synced).
