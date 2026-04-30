@@ -183,7 +183,11 @@ export default function App() {
 
   useEffect(() => {
     getVaultFiles().then(loadedFiles => {
+      console.log("Loaded files:", loadedFiles);
       setFiles(loadedFiles);
+      setLoading(false);
+    }).catch(err => {
+      console.error(err);
       setLoading(false);
     });
   }, []);
@@ -195,6 +199,12 @@ export default function App() {
   return (
     <BrowserRouter>
       <VaultLayout files={files}>
+        <div className="text-xs text-neutral-500 mb-4 p-2 bg-neutral-900 rounded border border-neutral-800">
+          Debug: Found {files.length} markdown files in vault.
+          <pre className="mt-2 text-neutral-600 max-h-32 overflow-auto">
+             {JSON.stringify(files.map(f => f.path), null, 2)}
+          </pre>
+        </div>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/note/:basename" element={<NotePage files={files} />} />
