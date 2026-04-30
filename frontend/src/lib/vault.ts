@@ -8,7 +8,7 @@ export interface VaultFile {
 
 export async function getVaultFiles(): Promise<VaultFile[]> {
   // Fetch all markdown files in the project root
-  const rootModules = import.meta.glob('/**/*.md', { query: '?raw', import: 'default' });
+  const rootModules = import.meta.glob('../../../vault/**/*.md', { query: '?raw', import: 'default' });
   
   const files: VaultFile[] = [];
 
@@ -19,11 +19,13 @@ export async function getVaultFiles(): Promise<VaultFile[]> {
     try {
       const rawContent = await rootModules[path]() as string;
       const { data, content } = parseFrontmatter(rawContent);
-      const name = path.split('/').pop() || '';
+      // Get a clean path relative to the vault root
+      const cleanPath = path.replace('../../../vault/', '');
+      const name = cleanPath.split('/').pop() || '';
       const basename = name.replace(/\.md$/, '');
 
       files.push({
-        path,
+        path: cleanPath,
         name,
         basename,
         content,

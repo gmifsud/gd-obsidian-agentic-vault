@@ -1,25 +1,28 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from 'path'
+import tailwindcss from '@tailwindcss/vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+import {defineConfig, loadEnv} from 'vite';
 
-// https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
+export default defineConfig(({mode}) => {
+  const env = loadEnv(mode, '.', '');
+  return {
+    plugins: [react(), tailwindcss()],
+    define: {
+      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
     },
-  },
-  server: {
-    // Port configurations for the AI Studio Environment
-    host: '0.0.0.0',
-    port: 3000,
-    fs: {
-      // CRITICAL: Allow the Vite dev server to read files from the parent directory 
-      // Because the frontend is now inside /frontend/ and needs to access /vault/
-      allow: [
-        '..',
-      ]
-    }
-  }
-})
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, '.'),
+      },
+    },
+    server: {
+      host: '0.0.0.0',
+      port: 3000,
+      fs: {
+        allow: ['..'],
+      },
+      // HMR is disabled in AI Studio via DISABLE_HMR env var.
+      hmr: process.env.DISABLE_HMR !== 'true',
+    },
+  };
+});

@@ -1,48 +1,79 @@
-# 🏛️ Architect: Agentic Personal OS Generator
+# Agentic Personal OS
 
-Welcome to **Architect** — a software solution and codebase designed to generate, manage, and scale AI-native "Agentic Personal OS" Obsidian Vaults. 
+Welcome to the Agentic Personal OS repository. This project has been refactored into a strict **Three-Tier Architecture** to completely separate the knowledge graph (Obsidian), the operational engine (Python), and the control panel (React/Vite).
 
-This repository is **NOT** just a single personal vault; it is the **Blueprint Generator**. It couples a custom React vault-parsing engine with Python orchestration scripts to autonomously spin out perfect, 100% architecturally pure obsidian environments.
+## 🏗️ Architecture Overview
 
-## 🧬 The Blueprint Pattern (Generated Output)
+The workspace is divided into three isolated domains:
 
-When Architect spins out a new vault via the `backend/architect_generator.py`, it deploys a strictly validated Split-Brain Architecture:
+### 1. The Obsidian Blueprint (`/vault/`)
+- **Role:** The pure knowledge graph and schema definition layer.
+- **Contents:** Human thoughts `01_Journal`, `02_Human_Thoughts`, AI domains (`10_Repositories`, `20_DevOps`), Agent skills, Git workflows, and settings (`.obsidian/`).
+- **Usage:** Point your local Obsidian application to this directory to use it as a standard Vault.
 
-### 1. Left Hemisphere (Human / Read-Only for AI)
-*   **`01_Journal/`**: Daily logs, tasks, and raw inputs. (Replacing the old `01_Daily_Notes` naming convention).
-*   **`02_Human_Thoughts/`**: Hobbies, career ambitions, unstructured ideas.
+### 2. The Engine Layer (`/backend/`)
+- **Role:** The AI orchestration and vault management engine.
+- **Contents:** Python scripts (e.g., `vault_manager.py`), OpenClaw configurations, and Docker setups.
+- **Usage:** Used to programmatically manipulate the vault (e.g., inject YAML templates, configure agents, update MOCs).
 
-### 2. Right Hemisphere (AI Workspace)
-*   **`15_Prototype_Designs/`**: The AI's output folder for code concepts and logic.
-*   **`25_Knowledge_Base/`**: Processed research, PRDs, and NotebookLM-synced content.
-*   **`40_Agent_Skills/`**: Standard execution skills (`/daily-plan`, `/weekly-review`).
-*   **`50_Databases/`**: Vault databases (`.base` tracking).
-*   **`60_Canvas_Maps/`**: Spatial logic diagrams (`.canvas` tracking).
-*   **`80_Templates/`**: Strict YAML frontmatter templates (e.g., `Media_Resource_Template.md`).
-
-### 3. The AI Triad
-Every generated vault is injected with a 3-part identity layer for Claude Code:
-*   **`CLAUDE.md`** (The Bootloader)
-*   **`SOUL.md`** (The Identity, Persona, and Rules limit)
-*   **`MEMORY.md`** (The Rolling Context Ledger)
-*   **`HEARTBEAT.md`** (The Background Cron Checklist)
+### 3. The Control Panel (`/frontend/`)
+- **Role:** The web dashboard and configuration UI.
+- **Contents:** A React/Vite application.
+- **Usage:** Provides a UI interface that reads directly from the `/vault/` folder to present your knowledge base and files in an interactive explorer.
 
 ---
 
-## ⚡ How to Spin Out a New Vault
+## 🚀 Getting Started
 
-Architect is equipped with a Python Typer CLI that acts as the vault generator. 
+### Prerequisites
+- **Node.js** (v18+ recommended)
+- **Python 3.10+**
+- **Obsidian** (optional, but recommended for native vault interaction)
 
-1. Navigate to the Architect workspace environment
-2. Install the lightweight Python dependencies (if missing):
-   ```bash
-   pip install -r backend/requirements.txt
-   ```
-3. Run the generator to clone the pristine blueprint into any target directory:
-   ```bash
-   python backend/architect_generator.py generate "/path/to/my-new-second-brain"
-   ```
+### Setup & Installation
 
-## 🌐 The React Vault Engine
+**1. Frontend (Control Panel)**
+Navigate to the root directory or the frontend directory and install the Node dependencies:
+```bash
+cd frontend
+npm install
+```
 
-Architect also includes a Next-Gen Vault Engine running out of `src/`. This provides a React, Vite, and Tailwind CSS web interface allowing you to statically host or securely browse the Vaults that you deploy via your CLI tools!
+**2. Backend (Engine Layer)**
+Set up your Python virtual environment and install dependencies:
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # Or `venv\Scripts\activate` on Windows
+pip install typer pyyaml rich
+```
+
+**3. Obsidian Vault**
+Open the desktop Obsidian app and choose **Open folder as vault**. Select the `/vault/` directory inside this repository.
+
+---
+
+## 💻 Running the Application
+
+### Starting the Frontend UI
+From the root directory, you can utilize the root `package.json` scripts to run the Vite dev server:
+```bash
+npm run dev
+```
+*(This commands delegates to the frontend directory and starts the app on port 3000)*
+
+### Using the Backend Vault Manager
+Navigate to the `backend` folder and use the Python CLI tool to safely modify your Vault schema:
+```bash
+cd backend
+python vault_manager.py --help
+```
+*Available Commands:*
+- `create-folder <path>`: Scaffolds a new structural directory in the Vault.
+- `inject-template <template_name> <target_file>`: Hydrates templates with data.
+- `update-moc <moc_filename> <title> <doc_reference>`: Safely appends an entry to a Map of Content.
+
+---
+
+## 📜 Historical Note
+A legacy structural migration script (`refactor_architecture.ps1`) is kept at the root. This PowerShell script was responsible for untangling the original monolith into this strict three-tier architecture.
