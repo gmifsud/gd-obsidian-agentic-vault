@@ -1,0 +1,259 @@
+{
+  "main": {
+    "id": "5c8e5ceff5bb50bf",
+    "type": "split",
+    "children": [
+      {
+        "id": "bd4ddf8daeb1efa5",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1d2f6c734762075b",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "02_Human_Thoughts/README.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "README"
+            }
+          }
+        ],
+        "stacked": true
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "f23a5296fafac93e",
+    "type": "split",
+    "children": [
+      {
+        "id": "68423098322419a3",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "5ec3facab638f060",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "d697ead5e0d440c9",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "acaddd6f334db560",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "0ad95b1b240467e8",
+    "type": "split",
+    "children": [
+      {
+        "id": "eaf4c99a59805e11",
+        "type": "tabs",
+        "dimension": 76.00574712643679,
+        "children": [
+          {
+            "id": "de8e76f7517fa914",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "START HERE.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for START HERE"
+            }
+          },
+          {
+            "id": "751b5f4a2766e233",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "START HERE.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from START HERE"
+            }
+          },
+          {
+            "id": "2eeaf8b37bd80b9a",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "0a555d6458259e6b",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "02_Human_Thoughts/README.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of README"
+            }
+          },
+          {
+            "id": "70baa12c6d56e73d",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          }
+        ],
+        "currentTab": 3
+      },
+      {
+        "id": "7f5927df3915087b",
+        "type": "tabs",
+        "dimension": 23.99425287356322,
+        "children": [
+          {
+            "id": "8d65d664f487d122",
+            "type": "leaf",
+            "state": {
+              "type": "calendar",
+              "state": {},
+              "icon": "calendar-with-checkmark",
+              "title": "Calendar"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 397.5
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "bases:Create new base": false,
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "random-note:Open random note": false,
+      "workspaces:Manage workspace layouts": false,
+      "templater-obsidian:Templater": false,
+      "periodic-notes:Open today": false
+    }
+  },
+  "active": "1d2f6c734762075b",
+  "lastOpenFiles": [
+    "00_MOCs/Repositories_MOC.md",
+    "claude.md",
+    "10_Repositories/README.md",
+    "20_DevOps/README.md",
+    "20_DevOps/Pipe - CI Build and Deploy.md",
+    "20_DevOps/Infra - Kubernetes Cluster.md",
+    "02_Human_Thoughts/README.md",
+    "06_Toolkit/Images/thumbnails/youtube",
+    "06_Toolkit/Images/thumbnails/resized",
+    "06_Toolkit/Images/thumbnails/external",
+    "06_Toolkit/Images/thumbnails",
+    "06_Toolkit/Snippets/MetaBindSnippets",
+    "06_Toolkit/Templates",
+    "06_Toolkit/Images",
+    "06_Toolkit/PDFs",
+    "06_Toolkit/Scripts",
+    "06_Toolkit/Snippets",
+    "99_Templates/Naming_Conventions.md",
+    "99_Templates/Git_Workflow_Template.md",
+    "99_Templates/Git_Resource_Template.md",
+    "90_Assets/README.md",
+    "README.md",
+    "AGENT_INSTRUCTIONS.md",
+    "00_MOCs/README.md",
+    "00_MOCs/Git_MOC.md",
+    "00_MOCs/DevOps_MOC.md",
+    "00_MOCs/Assets_MOC.md",
+    "00_MOCs/Agent_SOP.md",
+    "30_Git/README.md",
+    "30_Git/Git - PR Template.md",
+    "30_Git/Git - Log Formatting.md",
+    "30_Git/Git - Hotfix Workflow.md",
+    "01_Journal/README.md",
+    "00_MOCs/000_Home_MOC.md",
+    "03 Spaces/Learning/Learning.md",
+    "03 Spaces/Learning/Pauls YouTube Learning/2024-10-20 - Stop Wasting Time in Obsidian Mastering YAML properties.md",
+    "06 Toolkit/Images/thumbnails/resized/f69ae54b3a4f758167da1829a723ece3_86cf658e.webp",
+    "06 Toolkit/Images/thumbnails/external/cfc8974d72c73bd294c54540269221f7.jpg",
+    "06 Toolkit/Images/thumbnails/resized/69b07ab79944e37ba8aff0b5c248d1a5_86cf658e.webp",
+    "06 Toolkit/Images/thumbnails/external/877835f2ae7912c6bcc4d2a7e10d4e1a.jpg",
+    "06 Toolkit/Images/thumbnails/resized/10070bfd470c86fd16546dac2cdf58f2_86cf658e.webp",
+    "06 Toolkit/Images/thumbnails/external/51f3a6cb7cd10c0563ce3d1ee873f9b6.jpg",
+    "06 Toolkit/Images/thumbnails/resized/7fbce4b6b19a21a00a05242d831dfde2_86cf658e.webp",
+    "06 Toolkit/Images/thumbnails/external/4177c42b36a2a3d9db82bcf1ba92df28.jpg",
+    "06 Toolkit/Images/thumbnails/resized/15a3ddf1061d6dd8d26a79a8080c52e6_86cf658e.webp",
+    "06 Toolkit/Images/thumbnails/external/bfff9cac0162e80d243cf62f738993bd.jpg",
+    "03 Spaces/Canvas Mind Maps/Untitled.canvas"
+  ]
+}

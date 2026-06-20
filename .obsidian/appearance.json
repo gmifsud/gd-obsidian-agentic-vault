@@ -1,0 +1,13 @@
+{
+  "cssTheme": "One Oracle Developer",
+  "interfaceFontFamily": "Roboto,Inter Variable Text,Roboto SemiCondensed,Roboto Condensed,Inter Display,Source Sans Pro,Zed Sans",
+  "baseFontSizeAction": true,
+  "textFontFamily": "Inter Variable Text,0xProto",
+  "monospaceFontFamily": "Roboto Mono",
+  "theme": "obsidian",
+  "accentColor": "#c25e00",
+  "baseFontSize": 13,
+  "enabledCssSnippets": [
+    "zz-custom-fonts"
+  ]
+}

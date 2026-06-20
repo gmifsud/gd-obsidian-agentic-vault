@@ -1,6 +1,11 @@
-sqlite-vec
-fastembed
+# Core dependencies
 typer
-python-dotenv
 rich
+pyyaml
+python-dotenv
 requests
+
+# Optional (for vector search — install separately if needed)
+# sqlite-vec
+# fastembed
+# numpy

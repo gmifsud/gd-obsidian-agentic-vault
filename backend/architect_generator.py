@@ -1,13 +1,18 @@
 import os
 import json
+import shutil
 import typer
+import yaml
 from rich.console import Console
 from pathlib import Path
+from datetime import datetime
 
 app = typer.Typer(help="Architect: The Agentic Personal OS Vault Generator")
 console = Console()
 
-# --- BLOCKS OF THE BLUEPRINT ---
+CANONICAL_VAULT = Path(__file__).resolve().parent.parent / "vault"
+
+# --- FALLBACK BLOCKS (used when canonical vault files don't exist) ---
 
 SOUL_MD = """# The SOUL (System Operating Underlying Logic)
 
@@ -131,13 +136,56 @@ DIRECTORIES = [
     ".openclaw"
 ]
 
+# System file names mapped to their fallback content
+SYSTEM_FILE_DEFAULTS = {
+    "SOUL.md": SOUL_MD,
+    "CLAUDE.md": CLAUDE_MD,
+    "MEMORY.md": MEMORY_MD,
+    "USER.md": USER_MD,
+    "HEARTBEAT.md": HEARTBEAT_MD,
+}
+
+
+def _read_or_fallback(source_vault: Path, filename: str, fallback: str) -> str:
+    """Read a file from the source vault; fall back to hardcoded default if missing."""
+    source_file = source_vault / filename
+    if source_file.exists():
+        return source_file.read_text(encoding="utf-8")
+    return fallback
+
+
+def _copy_vault_directory(source_vault: Path, target_path: Path, rel_dir: str):
+    """Copy an entire directory tree from the source vault to the target vault."""
+    src = source_vault / rel_dir
+    dst = target_path / rel_dir
+    if src.exists() and src.is_dir():
+        if dst.exists():
+            shutil.rmtree(dst)
+        shutil.copytree(src, dst)
+        return True
+    return False
+
+
 @app.command()
-def generate(path: str = typer.Argument(..., help="Path to spin out the new Obsidian vault")):
+def generate(
+    path: str = typer.Argument(..., help="Path to spin out the new Obsidian vault"),
+    from_vault: str = typer.Option(None, help="Path to vault to use as blueprint (default: ../vault/)"),
+):
     """
     Spin out a new, pristine Agentic Personal OS Obsidian Vault.
+
+    Reads system files, skills, templates, and MOCs from the canonical vault
+    (or the vault specified via --from-vault). Falls back to built-in defaults
+    when the source vault files don't exist.
     """
     target_path = Path(path)
+    source_vault = Path(from_vault).resolve() if from_vault else CANONICAL_VAULT
+
+    if not source_vault.exists():
+        console.print(f"[bold yellow]Warning: Source vault not found at {source_vault}. Using built-in defaults.[/bold yellow]")
+
     console.print(f"[bold cyan]🏛️ Architect System Spinning out vault at:[/bold cyan] {target_path.absolute()}")
+    console.print(f"[dim]Source vault: {source_vault}[/dim]")
 
     # Scaffold directories
     for diff in DIRECTORIES:
@@ -145,17 +193,32 @@ def generate(path: str = typer.Argument(..., help="Path to spin out the new Obsi
         dir_path.mkdir(parents=True, exist_ok=True)
         # Create a .gitkeep or README for structured folders
         if diff in ["50_Databases", "60_Canvas_Maps", "25_Knowledge_Base", "15_Prototype_Designs"]:
-            (dir_path / "README.md").write_text(f"# {diff}\n\nAutomated tracking for {diff} objects.")
-    
-    # Write System Files
-    (target_path / "SOUL.md").write_text(SOUL_MD, encoding="utf-8")
-    (target_path / "CLAUDE.md").write_text(CLAUDE_MD, encoding="utf-8")
-    (target_path / "MEMORY.md").write_text(MEMORY_MD, encoding="utf-8")
-    (target_path / "USER.md").write_text(USER_MD, encoding="utf-8")
-    (target_path / "HEARTBEAT.md").write_text(HEARTBEAT_MD, encoding="utf-8")
-    
-    # Write Default Skills
-    (target_path / "40_Agent_Skills/routine-automation/SKILL.md").write_text(SKILL_ROUTINES, encoding="utf-8")
+            readme_path = dir_path / "README.md"
+            if not readme_path.exists():
+                readme_path.write_text(f"# {diff}\n\nAutomated tracking for {diff} objects.")
+
+    # Write System Files (read from source vault, fall back to defaults)
+    for filename, fallback in SYSTEM_FILE_DEFAULTS.items():
+        content = _read_or_fallback(source_vault, filename, fallback)
+        (target_path / filename).write_text(content, encoding="utf-8")
+
+    # Copy 40_Agent_Skills/ directory tree from source vault
+    if not _copy_vault_directory(source_vault, target_path, "40_Agent_Skills"):
+        # Fall back to writing the default skill
+        skill_dir = target_path / "40_Agent_Skills" / "routine-automation"
+        skill_dir.mkdir(parents=True, exist_ok=True)
+        (skill_dir / "SKILL.md").write_text(SKILL_ROUTINES, encoding="utf-8")
+        console.print("[dim]  40_Agent_Skills/ not found in source vault; wrote built-in default skill.[/dim]")
+
+    # Copy 80_Templates/ from source vault
+    if not _copy_vault_directory(source_vault, target_path, "80_Templates"):
+        (target_path / "80_Templates").mkdir(parents=True, exist_ok=True)
+        console.print("[dim]  80_Templates/ not found in source vault; directory created empty.[/dim]")
+
+    # Copy 00_MOCs/ from source vault
+    if not _copy_vault_directory(source_vault, target_path, "00_MOCs"):
+        (target_path / "00_MOCs").mkdir(parents=True, exist_ok=True)
+        console.print("[dim]  00_MOCs/ not found in source vault; directory created empty.[/dim]")
 
     # MCP Hooks
     claude_json = {
@@ -165,7 +228,19 @@ def generate(path: str = typer.Argument(..., help="Path to spin out the new Obsi
         }
     }
     (target_path / "claude.json").write_text(json.dumps(claude_json, indent=2), encoding="utf-8")
-    
+
+    # Generate vault.config.yaml
+    vault_config = {
+        "generated_by": "architect_generator",
+        "generated_at": datetime.now().isoformat(),
+        "source_vault": str(source_vault),
+        "version": "1.0.0",
+    }
+    (target_path / "vault.config.yaml").write_text(
+        yaml.safe_dump(vault_config, sort_keys=False),
+        encoding="utf-8",
+    )
+
     console.print("[bold green]✅ Blueprint generated successfully! 100% Architectural Purity achieved.[/bold green]")
 
 if __name__ == "__main__":

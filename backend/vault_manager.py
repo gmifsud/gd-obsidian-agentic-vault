@@ -1,15 +1,100 @@
 import os
+import re
+import json
 import yaml
 from pathlib import Path
 from datetime import datetime
 import typer
 from rich.console import Console
+from rich.table import Table
 
 app = typer.Typer(help="Vault Manager: Manipulate the Obsidian Blueprint programmatically")
 console = Console()
 
 # The vault directory is located one level up from the backend directory
 VAULT_DIR = Path(__file__).resolve().parent.parent / "vault"
+
+# --- Zone definitions ---
+LEFT_HEMISPHERE_DIRS = ["01_Journal", "02_Human_Thoughts"]
+RIGHT_HEMISPHERE_DIRS = [
+    "00_MOCs", "10_Repositories", "15_Prototype_Designs", "20_DevOps",
+    "25_Knowledge_Base", "30_Git", "40_Agent_Skills", "50_Databases",
+    "60_Canvas_Maps", "80_Templates",
+]
+ARCHIVE_DIRS = ["90_Assets"]
+ALL_EXPECTED_DIRS = LEFT_HEMISPHERE_DIRS + RIGHT_HEMISPHERE_DIRS + ARCHIVE_DIRS
+SYSTEM_FILES = ["CLAUDE.md", "SOUL.md", "MEMORY.md", "USER.md", "HEARTBEAT.md"]
+
+
+def _count_files_in_dir(dir_path: Path) -> int:
+    """Recursively count all files in a directory."""
+    if not dir_path.exists():
+        return 0
+    return sum(1 for _ in dir_path.rglob("*") if _.is_file())
+
+
+def _extract_wikilinks(text: str) -> list[str]:
+    """Extract all [[wikilink]] targets from text."""
+    return re.findall(r"\[\[([^\]|]+?)(?:\|[^\]]*?)?\]\]", text)
+
+
+def _resolve_wikilink(link_target: str, vault_dir: Path) -> bool:
+    """Check if a wikilink resolves to a real .md file or folder in the vault."""
+    target = link_target.strip()
+    if not target:
+        return False
+    # Check if it matches a directory name directly
+    if (vault_dir / target).is_dir():
+        return True
+    # Wikilinks can omit the .md extension
+    if not target.endswith(".md"):
+        target += ".md"
+    # Search anywhere in the vault for a file with that name
+    # Handle paths like "20_DevOps/some-file" 
+    if "/" in target or "\\" in target:
+        return (vault_dir / target).exists()
+    matches = list(vault_dir.rglob(target))
+    return len(matches) > 0
+
+
+def _validate_mocs(vault_dir: Path) -> list[dict]:
+    """Validate all MOC files: extract wikilinks and check if they resolve."""
+    moc_dir = vault_dir / "00_MOCs"
+    results = []
+    if not moc_dir.exists():
+        return results
+    for moc_file in moc_dir.glob("*.md"):
+        if moc_file.name == "README.md":
+            continue
+        content = moc_file.read_text(encoding="utf-8")
+        links = _extract_wikilinks(content)
+        broken = []
+        for link in links:
+            if not _resolve_wikilink(link, vault_dir):
+                broken.append(link)
+        results.append({
+            "moc": moc_file.name,
+            "total_links": len(links),
+            "broken_links": broken,
+        })
+    return results
+
+
+def _get_last_rolling_log_timestamp(vault_dir: Path) -> str | None:
+    """Parse MEMORY.md and extract the timestamp from the last rolling log entry."""
+    memory_path = vault_dir / "MEMORY.md"
+    if not memory_path.exists():
+        return None
+    content = memory_path.read_text(encoding="utf-8")
+    # Look for lines like: - [2025-06-10 14:30] or - [2025-06-10] or ISO timestamps
+    timestamps = re.findall(
+        r"-\s*\[(\d{4}-\d{2}-\d{2}(?:\s+\d{2}:\d{2}(?::\d{2})?)?)\]",
+        content,
+    )
+    if timestamps:
+        return timestamps[-1]
+    return None
+
 
 @app.command()
 def create_folder(path: str):
@@ -18,11 +103,11 @@ def create_folder(path: str):
     if target_path.exists():
         console.print(f"[bold yellow]Folder already exists: {target_path}[/bold yellow]")
         return
-    
+
     try:
         target_path.mkdir(parents=True, exist_ok=True)
         console.print(f"[bold green]Successfully created folder: {target_path}[/bold green]")
-        
+
         # Add a README standard to initialize the folder
         readme_path = target_path / "README.md"
         if not readme_path.exists():
@@ -32,7 +117,12 @@ def create_folder(path: str):
 
 
 @app.command()
-def inject_template(template_name: str, target_file: str, title: str = "New Document"):
+def inject_template(
+    template_name: str,
+    target_file: str,
+    title: str = "New Document",
+    variables: list[str] = typer.Option(None, "--var", help="Variables to hydrate in template, e.g. key=value")
+):
     """Inject an AI YAML template into a new markdown file."""
     template_path = VAULT_DIR / "80_Templates" / template_name
     
@@ -48,9 +138,59 @@ def inject_template(template_name: str, target_file: str, title: str = "New Docu
     # Read template content
     with open(template_path, "r", encoding="utf-8") as f:
         content = f.read()
-        
-    # Basic token replacement
-    content = content.replace("{{date}}", datetime.now().strftime("%Y-%m-%d"))
+
+    # Parse --var options into a dictionary
+    var_dict = {}
+    if variables:
+        for var in variables:
+            if "=" in var:
+                k, v = var.split("=", 1)
+                var_dict[k.strip()] = v.strip()
+
+    # Add standard tokens
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    var_dict.setdefault("date", current_date)
+    var_dict.setdefault("title", title)
+
+    # Separate frontmatter and body
+    frontmatter_str = ""
+    body_str = content
+    if content.startswith("---\n"):
+        parts = content.split("---\n", 2)
+        if len(parts) >= 3:
+            frontmatter_str = parts[1]
+            body_str = parts[2]
+
+    # Handle YAML frontmatter parsing and merging
+    if frontmatter_str:
+        try:
+            frontmatter_data = yaml.safe_load(frontmatter_str) or {}
+            for k, v in var_dict.items():
+                # If key looks like a list/array in target frontmatter, parse it
+                if k in ["tech_stack", "related_repos", "prerequisites"]:
+                    if v.startswith("[") and v.endswith("]"):
+                        import json as json_mod
+                        try:
+                            v = json_mod.loads(v)
+                        except Exception:
+                            v = [item.strip().strip('"').strip("'") for item in v[1:-1].split(",") if item.strip()]
+                    else:
+                        v = [item.strip() for item in v.split(",") if item.strip()]
+                # Update key
+                frontmatter_data[k] = v
+            # Re-serialize frontmatter
+            frontmatter_str = yaml.safe_dump(frontmatter_data, sort_keys=False).strip()
+            content = f"---\n{frontmatter_str}\n---\n{body_str}"
+        except Exception as e:
+            console.print(f"[bold yellow]Failed to merge frontmatter YAML: {e}. Falling back to text replacement.[/bold yellow]")
+
+    # Run generic token replacement in the entire file
+    for k, v in var_dict.items():
+        val_str = ", ".join(v) if isinstance(v, list) else str(v)
+        content = content.replace(f"{{{{{k}}}}}", val_str)
+
+    # Also make sure standard {{date}} and {{title}} are replaced if they weren't in var_dict keys
+    content = content.replace("{{date}}", current_date)
     content = content.replace("{{title}}", title)
     
     # Write to target destination
@@ -83,6 +223,227 @@ def update_moc(moc_filename: str, title: str, doc_reference: str):
         f.write(entry)
         
     console.print(f"[bold green]Successfully appended {title} to {moc_filename}[/bold green]")
+
+@app.command()
+def auto_update_moc(file_path: str):
+    """Automatically route and append a new file reference to the correct MOC."""
+    target_path = Path(file_path).resolve()
+    # If file_path is relative, resolve it relative to VAULT_DIR or CWD
+    if not target_path.exists():
+        # Try relative to VAULT_DIR
+        target_path = (VAULT_DIR / file_path).resolve()
+        if not target_path.exists():
+            # Try relative to VAULT_DIR's parent (root)
+            target_path = (VAULT_DIR.parent / file_path).resolve()
+            if not target_path.exists():
+                console.print(f"[bold red]File not found: {file_path}[/bold red]")
+                raise typer.Exit(code=1)
+
+    with open(target_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    file_name = target_path.stem
+    dir_name = target_path.parent.name
+
+    # Extract YAML frontmatter
+    metadata = {}
+    if content.startswith("---\n"):
+        parts = content.split("---\n", 2)
+        if len(parts) >= 3:
+            try:
+                metadata = yaml.safe_load(parts[1]) or {}
+            except Exception:
+                pass
+
+    moc_path = None
+    entry = f"- [[{file_name}]]"
+
+    # Route based on parent folder name
+    if "10_Repositories" in target_path.parts or dir_name == "10_Repositories":
+        moc_path = VAULT_DIR / "00_MOCs" / "Repositories_MOC.md"
+        tech_stack = metadata.get("tech_stack", "[]")
+        status = metadata.get("status", "unknown")
+        entry += f" | tech_stack: {tech_stack} | status: {status}"
+    elif "20_DevOps" in target_path.parts or dir_name == "20_DevOps":
+        moc_path = VAULT_DIR / "00_MOCs" / "DevOps_MOC.md"
+        env = metadata.get("environment", "[]")
+        tech_stack = metadata.get("tech_stack", "[]")
+        entry += f" | environment: {env} | tech_stack: {tech_stack}"
+    elif "30_Git" in target_path.parts or dir_name == "30_Git":
+        moc_path = VAULT_DIR / "00_MOCs" / "Git_MOC.md"
+        workflow_name = metadata.get("workflow_name", "unknown")
+        entry += f" | workflow_name: {workflow_name}"
+    else:
+        console.print(f"[yellow]No matching MOC for directory: {dir_name}. Skipping MOC update.[/yellow]")
+        return
+
+    if not moc_path.exists():
+        console.print(f"[bold red]MOC file not found: {moc_path}[/bold red]")
+        raise typer.Exit(code=1)
+
+    with open(moc_path, "r", encoding="utf-8") as f:
+        moc_content = f.read()
+
+    # Prevent duplicates
+    if f"[[{file_name}]]" in moc_content:
+        console.print(f"Entry for {file_name} already exists in {moc_path.name}.")
+        return
+
+    index_header = "## Static Agent Index"
+    if index_header in moc_content:
+        moc_content = moc_content.replace(index_header, f"{index_header}\n{entry}")
+    else:
+        moc_content += f"\n{index_header}\n{entry}\n"
+
+    with open(moc_path, "w", encoding="utf-8") as f:
+        f.write(moc_content)
+
+    console.print(f"[bold green]Successfully updated {moc_path.name} with {file_name}[/bold green]")
+
+
+# ---------- NEW COMMANDS ----------
+
+
+@app.command()
+def vault_status():
+    """Produce a JSON-formatted report of vault health."""
+    report: dict = {}
+
+    # --- File counts per zone ---
+    zone_counts = {
+        "left_hemisphere": {},
+        "right_hemisphere": {},
+        "archive": {},
+    }
+    for d in LEFT_HEMISPHERE_DIRS:
+        zone_counts["left_hemisphere"][d] = _count_files_in_dir(VAULT_DIR / d)
+    for d in RIGHT_HEMISPHERE_DIRS:
+        zone_counts["right_hemisphere"][d] = _count_files_in_dir(VAULT_DIR / d)
+    for d in ARCHIVE_DIRS:
+        zone_counts["archive"][d] = _count_files_in_dir(VAULT_DIR / d)
+
+    report["zone_file_counts"] = zone_counts
+
+    # --- System files ---
+    sys_file_status = {}
+    for sf in SYSTEM_FILES:
+        sys_file_status[sf] = (VAULT_DIR / sf).exists()
+    report["system_files"] = sys_file_status
+
+    # --- Last rolling log timestamp ---
+    report["last_rolling_log_timestamp"] = _get_last_rolling_log_timestamp(VAULT_DIR)
+
+    # --- MOC integrity ---
+    report["moc_integrity"] = _validate_mocs(VAULT_DIR)
+
+    console.print_json(json.dumps(report, indent=2))
+
+
+@app.command()
+def list_templates():
+    """List available templates from vault/80_Templates/ with their YAML frontmatter fields."""
+    templates_dir = VAULT_DIR / "80_Templates"
+    if not templates_dir.exists():
+        console.print("[bold red]80_Templates directory not found![/bold red]")
+        raise typer.Exit(code=1)
+
+    template_files = sorted(templates_dir.glob("*.md"))
+    if not template_files:
+        console.print("[yellow]No templates found in 80_Templates/.[/yellow]")
+        return
+
+    table = Table(title="Available Templates", show_lines=True)
+    table.add_column("Template", style="cyan", no_wrap=True)
+    table.add_column("Field", style="green")
+    table.add_column("Default Value", style="yellow")
+
+    for tpl in template_files:
+        content = tpl.read_text(encoding="utf-8")
+        fields: dict = {}
+        if content.startswith("---\n"):
+            parts = content.split("---\n", 2)
+            if len(parts) >= 3:
+                try:
+                    fields = yaml.safe_load(parts[1]) or {}
+                except Exception:
+                    fields = {}
+
+        if fields:
+            first = True
+            for key, value in fields.items():
+                table.add_row(
+                    tpl.name if first else "",
+                    str(key),
+                    str(value) if value is not None else "",
+                )
+                first = False
+        else:
+            table.add_row(tpl.name, "(no frontmatter)", "")
+
+    console.print(table)
+
+
+@app.command()
+def validate():
+    """Check architectural purity of the vault. Exit 0 if valid, 1 if issues found."""
+    issues: list[str] = []
+    warnings: list[str] = []
+
+    # 1. Required directories
+    for d in ALL_EXPECTED_DIRS:
+        if not (VAULT_DIR / d).exists():
+            issues.append(f"Missing required directory: {d}/")
+
+    # 2. System files
+    for sf in SYSTEM_FILES:
+        if not (VAULT_DIR / sf).exists():
+            issues.append(f"Missing system file: {sf}")
+
+    # 3. Unexpected .md files at vault root
+    expected_root_md = set(SYSTEM_FILES + ["README.md", "AGENT_INSTRUCTIONS.md"])
+    for f in VAULT_DIR.glob("*.md"):
+        if f.name not in expected_root_md:
+            issues.append(f"Unexpected file at vault root: {f.name}")
+
+    # 4. Empty hemisphere directories (only README.md or nothing)
+    for d in LEFT_HEMISPHERE_DIRS + RIGHT_HEMISPHERE_DIRS:
+        dir_path = VAULT_DIR / d
+        if dir_path.exists():
+            md_files = [f for f in dir_path.rglob("*.md") if f.name != "README.md"]
+            if not md_files:
+                warnings.append(f"Empty hemisphere directory: {d}/ (contains only README.md or is empty)")
+
+    # 5. MOC link validation
+    moc_results = _validate_mocs(VAULT_DIR)
+    for moc in moc_results:
+        if moc["broken_links"]:
+            for bl in moc["broken_links"]:
+                issues.append(f"Broken wikilink in {moc['moc']}: [[{bl}]]")
+
+    # --- Output ---
+    if issues:
+        console.print("[bold red]FAIL: Vault validation FAILED[/bold red]")
+        console.print()
+        for issue in issues:
+            console.print(f"  [red]X[/red] {issue}")
+    else:
+        console.print("[bold green]PASS: All structural checks passed.[/bold green]")
+
+    if warnings:
+        console.print()
+        console.print("[bold yellow]Warnings:[/bold yellow]")
+        for w in warnings:
+            console.print(f"  [yellow]![/yellow] {w}")
+
+    if moc_results:
+        console.print()
+        console.print("[bold]MOC Link Summary:[/bold]")
+        for moc in moc_results:
+            broken_count = len(moc["broken_links"])
+            status = "[green]OK[/green]" if broken_count == 0 else f"[red]{broken_count} broken[/red]"
+            console.print(f"  {moc['moc']}: {moc['total_links']} links — {status}")
+
+    raise typer.Exit(code=1 if issues else 0)
 
 
 if __name__ == "__main__":

@@ -3,7 +3,12 @@
   "private": true,
   "scripts": {
     "dev": "cd frontend && npm run dev",
-    "build": "cd frontend && npm install && npm run build && cd .. && rm -rf dist && cp -r frontend/dist dist",
-    "lint": "cd frontend && npm run lint"
+    "dev:client": "cd frontend && npm run dev:client",
+    "server": "cd frontend && npm run server",
+    "build": "cd frontend && npm install && npm run build",
+    "lint": "cd frontend && npm run lint",
+    "backend:status": "cd backend && python vault_manager.py vault-status",
+    "backend:validate": "cd backend && python vault_manager.py validate",
+    "backend:templates": "cd backend && python vault_manager.py list-templates"
   }
 }
