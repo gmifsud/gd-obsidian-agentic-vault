@@ -1,0 +1,57 @@
+{
+  "enableGlobalSync": false,
+  "syncInterval": 2000,
+  "debugMode": false,
+  "showStatusBar": true,
+  "connections": [
+    {
+      "id": "59768f5d-0720-4cd8-b48e-8f9bc3509088",
+      "name": "Untitled",
+      "internalPath": "",
+      "externalPath": "",
+      "syncType": "external-to-vault",
+      "bidirectionalType": "merge",
+      "deletedFileAction": "property",
+      "ignoreHiddenFiles": false,
+      "excludeFolders": [
+        "node_modules",
+        "dist",
+        "build",
+        "src",
+        "lib",
+        "app",
+        "public",
+        "assets",
+        "utils",
+        "util",
+        "types",
+        "type",
+        "hooks",
+        "hook",
+        "components",
+        "component",
+        "styles",
+        "style",
+        "pages",
+        "routes",
+        "route",
+        "layouts",
+        "layout",
+        "modules",
+        "module",
+        "config"
+      ],
+      "includeFolders": [],
+      "extensions": [
+        "md"
+      ],
+      "includeFileNames": [],
+      "excludeFileNames": [],
+      "frontmatterPolicy": "internalOnly",
+      "syncEnabled": false
+    }
+  ],
+  "_lastFrontmatterPolicies": {
+    "59768f5d-0720-4cd8-b48e-8f9bc3509088": "internalOnly"
+  }
+}

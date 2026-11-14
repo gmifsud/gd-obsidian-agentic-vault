@@ -1,0 +1,44 @@
+# Vault layout: the single description of this Vault's directories.
+# Read by the Engine (backend/vault_layout.py) and the Control Panel (frontend/vaultLayout.js).
+# Terms are defined in CONTEXT.md at the repository root.
+#
+# Every directory states:
+#   zone            left | right | assets
+#   agent_writable  whether agents may write there (separate from the zone)
+#   moc             the MOC in 00_MOCs that indexes it, or null for "not indexed"
+layout:
+  directories:
+    01_Journal:           { zone: left,   agent_writable: false, moc: null }
+    02_Human_Thoughts:    { zone: left,   agent_writable: false, moc: null }
+    00_MOCs:              { zone: right,  agent_writable: true,  moc: null }
+    10_Repositories:      { zone: right,  agent_writable: true,  moc: Repositories_MOC.md }
+    15_Prototype_Designs: { zone: right,  agent_writable: true,  moc: null }
+    20_DevOps:            { zone: right,  agent_writable: true,  moc: DevOps_MOC.md }
+    25_Knowledge_Base:    { zone: right,  agent_writable: true,  moc: null }
+    30_Git:               { zone: right,  agent_writable: true,  moc: Git_MOC.md }
+    40_Agent_Skills:      { zone: right,  agent_writable: true,  moc: null }
+    50_Databases:         { zone: right,  agent_writable: true,  moc: null }
+    60_Canvas_Maps:       { zone: right,  agent_writable: true,  moc: null }
+    80_Templates:         { zone: right,  agent_writable: true,  moc: null }
+    90_Assets:            { zone: assets, agent_writable: true,  moc: Assets_MOC.md }
+
+  # A subdirectory may override its parent's write permission. The most specific entry wins.
+  overrides:
+    01_Journal/Reviews: { agent_writable: true }
+
+  # Directories owned by other tools. The Engine never writes there; the Control Panel never reads there.
+  unmanaged:
+    - copilot
+    - Connections
+
+  # Markdown files allowed at the Vault root. Any other Markdown file there fails validation.
+  system_files:
+    required:
+      CLAUDE.md:    { agent_writable: false }
+      SOUL.md:      { agent_writable: false }
+      USER.md:      { agent_writable: false }
+      MEMORY.md:    { agent_writable: true }
+      HEARTBEAT.md: { agent_writable: true }
+    optional:
+      README.md:             { agent_writable: false }
+      AGENT_INSTRUCTIONS.md: { agent_writable: false }

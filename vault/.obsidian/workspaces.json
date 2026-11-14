@@ -1,0 +1,1087 @@
+{
+  "workspaces": {
+    "default": {
+      "main": {
+        "id": "645b8391cc815a0d",
+        "type": "split",
+        "children": [
+          {
+            "id": "01a117d23c6aca5d",
+            "type": "split",
+            "children": [
+              {
+                "id": "76f1a23a906a72b3",
+                "type": "tabs",
+                "children": [
+                  {
+                    "id": "dc97ae0fe174adf7",
+                    "type": "leaf",
+                    "state": {
+                      "type": "markdown",
+                      "state": {
+                        "file": "25_Knowledge_Base/Tokens/azure/StagingDBCred.md",
+                        "mode": "preview",
+                        "source": false
+                      },
+                      "icon": "lucide-file",
+                      "title": "StagingDBCred"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "f3e35e4638eb5a4c",
+                "type": "tabs",
+                "children": [
+                  {
+                    "id": "42a659d1ab5b1ee0",
+                    "type": "leaf",
+                    "pinned": true,
+                    "state": {
+                      "type": "terminal-view",
+                      "state": {
+                        "tabs": [
+                          {
+                            "name": "Terminal 1",
+                            "color": "",
+                            "cwd": "C:\\Repos\\gd-obsidian-agentic-vault\\vault",
+                            "bufferSerial": "\r\n\u001b[33mTerminal binaries not installed.\r\n\u001b[0mGo to Settings → Terminal to download them.\u001b[1B\u001b[43D"
+                          }
+                        ],
+                        "activeIndex": 0
+                      },
+                      "pinned": true,
+                      "icon": "terminal",
+                      "title": "Terminal"
+                    }
+                  },
+                  {
+                    "id": "65b99d0c874c13b1",
+                    "type": "leaf",
+                    "pinned": true,
+                    "state": {
+                      "type": "ace-snippets-editor",
+                      "state": {
+                        "file": "zz-custom-fonts.css"
+                      },
+                      "pinned": true,
+                      "icon": "code-xml",
+                      "title": "Snippets editor"
+                    }
+                  }
+                ],
+                "currentTab": 1
+              }
+            ],
+            "direction": "horizontal"
+          }
+        ],
+        "direction": "vertical"
+      },
+      "left": {
+        "id": "65e8c50e87177051",
+        "type": "split",
+        "children": [
+          {
+            "id": "84e344c8bbb16811",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "17ecfcf82b4c1f4a",
+                "type": "leaf",
+                "state": {
+                  "type": "file-explorer",
+                  "state": {
+                    "sortOrder": "alphabetical",
+                    "autoReveal": false
+                  },
+                  "icon": "lucide-folder-closed",
+                  "title": "Files"
+                }
+              },
+              {
+                "id": "076f0d360cee24a6",
+                "type": "leaf",
+                "state": {
+                  "type": "search",
+                  "state": {
+                    "query": "",
+                    "matchingCase": false,
+                    "explainSearch": false,
+                    "collapseAll": false,
+                    "extraContext": false,
+                    "sortOrder": "alphabetical"
+                  },
+                  "icon": "lucide-search",
+                  "title": "Search"
+                }
+              },
+              {
+                "id": "328b9d642791241e",
+                "type": "leaf",
+                "state": {
+                  "type": "bookmarks",
+                  "state": {},
+                  "icon": "lucide-bookmark",
+                  "title": "Bookmarks"
+                }
+              },
+              {
+                "id": "7b67b2e877e2a8bd",
+                "type": "leaf",
+                "state": {
+                  "type": "context-workspaces-view",
+                  "state": {},
+                  "icon": "layout-grid",
+                  "title": "Context workspaces"
+                }
+              },
+              {
+                "id": "46ddb41cabf96553",
+                "type": "leaf",
+                "state": {
+                  "type": "vaultman-frame",
+                  "state": {},
+                  "icon": "lucide-vault",
+                  "title": "Vaultman Explorer"
+                }
+              }
+            ],
+            "currentTab": 3
+          },
+          {
+            "id": "3a85de1b5afd5199",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "6579ad70e22bcb7d",
+                "type": "leaf",
+                "state": {
+                  "type": "outline",
+                  "state": {
+                    "file": "25_Knowledge_Base/Tokens/azure/StagingDBCred.md",
+                    "followCursor": false,
+                    "showSearch": false,
+                    "searchQuery": ""
+                  },
+                  "icon": "lucide-list",
+                  "title": "Outline of StagingDBCred"
+                }
+              }
+            ]
+          }
+        ],
+        "direction": "horizontal",
+        "width": 300
+      },
+      "right": {
+        "id": "09c0d345d586add0",
+        "type": "split",
+        "children": [
+          {
+            "id": "fddbbebee1775e1d",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "1e3e5fffd7529566",
+                "type": "leaf",
+                "state": {
+                  "type": "backlink",
+                  "state": {
+                    "collapseAll": false,
+                    "extraContext": false,
+                    "sortOrder": "alphabetical",
+                    "showSearch": false,
+                    "searchQuery": "",
+                    "backlinkCollapsed": false,
+                    "unlinkedCollapsed": true
+                  },
+                  "icon": "links-coming-in",
+                  "title": "Backlinks"
+                }
+              },
+              {
+                "id": "1bf9dcb749ad4013",
+                "type": "leaf",
+                "state": {
+                  "type": "outgoing-link",
+                  "state": {
+                    "linksCollapsed": false,
+                    "unlinkedCollapsed": true
+                  },
+                  "icon": "links-going-out",
+                  "title": "Outgoing links"
+                }
+              },
+              {
+                "id": "52f7505d895ba20d",
+                "type": "leaf",
+                "state": {
+                  "type": "tag",
+                  "state": {
+                    "sortOrder": "frequency",
+                    "useHierarchy": true,
+                    "showSearch": false,
+                    "searchQuery": ""
+                  },
+                  "icon": "lucide-tags",
+                  "title": "Tags"
+                }
+              },
+              {
+                "id": "7eedb4e09787648c",
+                "type": "leaf",
+                "state": {
+                  "type": "all-properties",
+                  "state": {
+                    "sortOrder": "frequency",
+                    "showSearch": false,
+                    "searchQuery": ""
+                  },
+                  "icon": "lucide-archive",
+                  "title": "All properties"
+                }
+              },
+              {
+                "id": "2cc5021eba61dcb2",
+                "type": "leaf",
+                "state": {
+                  "type": "footnotes",
+                  "state": {
+                    "file": "25_Knowledge_Base/Tokens/google/Google.md"
+                  },
+                  "icon": "lucide-file-signature",
+                  "title": "Footnotes"
+                }
+              },
+              {
+                "id": "33725c603df4fee3",
+                "type": "leaf",
+                "state": {
+                  "type": "lns-links-panel",
+                  "state": {},
+                  "icon": "link",
+                  "title": "LNS links"
+                }
+              }
+            ],
+            "currentTab": 2
+          }
+        ],
+        "direction": "horizontal",
+        "width": 300
+      },
+      "left-ribbon": {
+        "hiddenItems": {
+          "switcher:Open quick switcher": false,
+          "graph:Open graph view": false,
+          "canvas:Create new canvas": false,
+          "daily-notes:Open today's daily note": false,
+          "templates:Insert template": false,
+          "command-palette:Open command palette": false,
+          "bases:Create new base": false,
+          "vaultman:Open Vaultman": false,
+          "ace-code-editor:Open CSS snippet manager": false,
+          "context-workspaces:Context workspaces": false,
+          "markdown-importer:Open format converter": false,
+          "workspaces:Manage workspace layouts": false,
+          "lean-terminal:Open terminal": false,
+          "lns-directories:Link external path": false
+        }
+      },
+      "active": "7b67b2e877e2a8bd",
+      "mtime": "2026-06-27T22:40:11+02:00"
+    },
+    "tokens": {
+      "main": {
+        "id": "645b8391cc815a0d",
+        "type": "split",
+        "children": [
+          {
+            "id": "f3e35e4638eb5a4c",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "42a659d1ab5b1ee0",
+                "type": "leaf",
+                "pinned": true,
+                "state": {
+                  "type": "terminal-view",
+                  "state": {
+                    "tabs": [
+                      {
+                        "name": "Terminal 1",
+                        "color": "",
+                        "cwd": "C:\\Repos\\gd-obsidian-agentic-vault\\vault",
+                        "bufferSerial": "Microsoft Windows [Version 10.0.26200.9711]\r\n(c) Microsoft Corporation. All rights reserved.\r\n\r\nC:\\Repos\\gd-obsidian-agentic-vault\\vault>\u001b[?1004h"
+                      }
+                    ],
+                    "activeIndex": 0
+                  },
+                  "pinned": true,
+                  "icon": "terminal",
+                  "title": "Terminal"
+                }
+              },
+              {
+                "id": "65b99d0c874c13b1",
+                "type": "leaf",
+                "pinned": true,
+                "state": {
+                  "type": "ace-snippets-editor",
+                  "state": {
+                    "file": "zz-custom-fonts.css"
+                  },
+                  "pinned": true,
+                  "icon": "code-xml",
+                  "title": "Snippets editor"
+                }
+              },
+              {
+                "id": "5c546bd7620a5b92",
+                "type": "leaf",
+                "state": {
+                  "type": "markdown",
+                  "state": {
+                    "file": "00_MOCs/Git_MOC.md",
+                    "mode": "preview",
+                    "source": true
+                  },
+                  "icon": "lucide-file",
+                  "title": "Git_MOC"
+                }
+              }
+            ]
+          }
+        ],
+        "direction": "vertical"
+      },
+      "left": {
+        "id": "65e8c50e87177051",
+        "type": "split",
+        "children": [
+          {
+            "id": "84e344c8bbb16811",
+            "type": "tabs",
+            "dimension": 71.20954003407155,
+            "children": [
+              {
+                "id": "17ecfcf82b4c1f4a",
+                "type": "leaf",
+                "state": {
+                  "type": "file-explorer",
+                  "state": {
+                    "sortOrder": "alphabetical",
+                    "autoReveal": false,
+                    "showSearch": false,
+                    "searchQuery": ""
+                  },
+                  "icon": "lucide-folder-closed",
+                  "title": "Files"
+                }
+              },
+              {
+                "id": "076f0d360cee24a6",
+                "type": "leaf",
+                "state": {
+                  "type": "search",
+                  "state": {
+                    "query": "eyepass",
+                    "matchingCase": false,
+                    "explainSearch": false,
+                    "collapseAll": false,
+                    "extraContext": false,
+                    "sortOrder": "alphabetical"
+                  },
+                  "icon": "lucide-search",
+                  "title": "Search"
+                }
+              },
+              {
+                "id": "328b9d642791241e",
+                "type": "leaf",
+                "state": {
+                  "type": "bookmarks",
+                  "state": {},
+                  "icon": "lucide-bookmark",
+                  "title": "Bookmarks"
+                }
+              },
+              {
+                "id": "7b67b2e877e2a8bd",
+                "type": "leaf",
+                "state": {
+                  "type": "context-workspaces-view",
+                  "state": {},
+                  "icon": "layout-grid",
+                  "title": "Context workspaces"
+                }
+              },
+              {
+                "id": "46ddb41cabf96553",
+                "type": "leaf",
+                "state": {
+                  "type": "vaultman-frame",
+                  "state": {},
+                  "icon": "lucide-vault",
+                  "title": "Vaultman Explorer"
+                }
+              },
+              {
+                "id": "a09e5b4070c974ab",
+                "type": "leaf",
+                "state": {
+                  "type": "context-workspaces-view",
+                  "state": {},
+                  "icon": "layout-grid",
+                  "title": "Context workspaces"
+                }
+              }
+            ],
+            "currentTab": 4
+          },
+          {
+            "id": "3a85de1b5afd5199",
+            "type": "tabs",
+            "dimension": 28.79045996592845,
+            "children": [
+              {
+                "id": "6579ad70e22bcb7d",
+                "type": "leaf",
+                "state": {
+                  "type": "outline",
+                  "state": {
+                    "followCursor": false,
+                    "showSearch": false,
+                    "searchQuery": ""
+                  },
+                  "icon": "lucide-list",
+                  "title": "Outline"
+                }
+              }
+            ]
+          }
+        ],
+        "direction": "horizontal",
+        "width": 670.3125457763672
+      },
+      "right": {
+        "id": "09c0d345d586add0",
+        "type": "split",
+        "children": [
+          {
+            "id": "fddbbebee1775e1d",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "1e3e5fffd7529566",
+                "type": "leaf",
+                "state": {
+                  "type": "backlink",
+                  "state": {
+                    "collapseAll": false,
+                    "extraContext": false,
+                    "sortOrder": "alphabetical",
+                    "showSearch": false,
+                    "searchQuery": "",
+                    "backlinkCollapsed": false,
+                    "unlinkedCollapsed": true
+                  },
+                  "icon": "links-coming-in",
+                  "title": "Backlinks"
+                }
+              },
+              {
+                "id": "1bf9dcb749ad4013",
+                "type": "leaf",
+                "state": {
+                  "type": "outgoing-link",
+                  "state": {
+                    "linksCollapsed": false,
+                    "unlinkedCollapsed": true
+                  },
+                  "icon": "links-going-out",
+                  "title": "Outgoing links"
+                }
+              },
+              {
+                "id": "52f7505d895ba20d",
+                "type": "leaf",
+                "state": {
+                  "type": "tag",
+                  "state": {
+                    "sortOrder": "frequency",
+                    "useHierarchy": true,
+                    "showSearch": false,
+                    "searchQuery": ""
+                  },
+                  "icon": "lucide-tags",
+                  "title": "Tags"
+                }
+              },
+              {
+                "id": "7eedb4e09787648c",
+                "type": "leaf",
+                "state": {
+                  "type": "all-properties",
+                  "state": {
+                    "sortOrder": "frequency",
+                    "showSearch": false,
+                    "searchQuery": ""
+                  },
+                  "icon": "lucide-archive",
+                  "title": "All properties"
+                }
+              },
+              {
+                "id": "2cc5021eba61dcb2",
+                "type": "leaf",
+                "state": {
+                  "type": "footnotes",
+                  "state": {
+                    "file": "25_Knowledge_Base/Tokens/google/Google.md"
+                  },
+                  "icon": "lucide-file-signature",
+                  "title": "Footnotes"
+                }
+              },
+              {
+                "id": "33725c603df4fee3",
+                "type": "leaf",
+                "state": {
+                  "type": "lns-links-panel",
+                  "state": {},
+                  "icon": "link",
+                  "title": "LNS links"
+                }
+              },
+              {
+                "id": "799cd86aae17ae1d",
+                "type": "leaf",
+                "pinned": true,
+                "state": {
+                  "type": "copilot-agent-chat-view",
+                  "state": {},
+                  "pinned": true,
+                  "icon": "copilot-agent",
+                  "title": "Copilot Agent Chat"
+                }
+              }
+            ],
+            "currentTab": 6
+          }
+        ],
+        "direction": "horizontal",
+        "width": 552.2999267578125
+      },
+      "left-ribbon": {
+        "hiddenItems": {
+          "zk-prefixer:Create new unique note": false,
+          "audio-recorder:Start/stop recording": false,
+          "switcher:Open quick switcher": false,
+          "graph:Open graph view": false,
+          "canvas:Create new canvas": false,
+          "daily-notes:Open today's daily note": false,
+          "templates:Insert template": false,
+          "command-palette:Open command palette": false,
+          "bases:Create new base": false,
+          "workspaces:Manage workspace layouts": false,
+          "vaultman:Open Vaultman": false,
+          "ace-code-editor:Open CSS snippet manager": false,
+          "context-workspaces:Context workspaces": false,
+          "lean-terminal:Open terminal": false,
+          "lns-directories:Link external path": false,
+          "templater-obsidian:Templater": false,
+          "copilot:Open Copilot Agent Chat": false,
+          "obdrawio:New diagram": false,
+          "mermaid-tools:Open Mermaid Toolbar": false
+        }
+      },
+      "active": "42a659d1ab5b1ee0",
+      "mtime": "2026-11-13T09:36:19+01:00"
+    },
+    "claude-cowork-recovery": {
+      "main": {
+        "id": "645b8391cc815a0d",
+        "type": "split",
+        "children": [
+          {
+            "id": "01a117d23c6aca5d",
+            "type": "split",
+            "children": [
+              {
+                "id": "76f1a23a906a72b3",
+                "type": "tabs",
+                "dimension": 67.01337295690936,
+                "children": [
+                  {
+                    "id": "dc97ae0fe174adf7",
+                    "type": "leaf",
+                    "pinned": true,
+                    "state": {
+                      "type": "markdown",
+                      "state": {
+                        "file": "25_Knowledge_Base/Tokens/tokens/openclaw.md",
+                        "mode": "source",
+                        "source": true
+                      },
+                      "pinned": true,
+                      "icon": "lucide-file",
+                      "title": "openclaw"
+                    }
+                  },
+                  {
+                    "id": "0259d0a8e37d40d0",
+                    "type": "leaf",
+                    "pinned": true,
+                    "state": {
+                      "type": "markdown",
+                      "state": {
+                        "file": "25_Knowledge_Base/Tokens/azure/StagingDBCred.md",
+                        "mode": "source",
+                        "source": true
+                      },
+                      "pinned": true,
+                      "icon": "lucide-file",
+                      "title": "StagingDBCred"
+                    }
+                  },
+                  {
+                    "id": "b0362f6bb89b6eaa",
+                    "type": "leaf",
+                    "pinned": true,
+                    "state": {
+                      "type": "markdown",
+                      "state": {
+                        "file": "25_Knowledge_Base/Tokens/tokens/OpenRouterAI.md",
+                        "mode": "source",
+                        "source": true
+                      },
+                      "pinned": true,
+                      "icon": "lucide-file",
+                      "title": "OpenRouterAI"
+                    }
+                  },
+                  {
+                    "id": "d291fa488997fdb0",
+                    "type": "leaf",
+                    "pinned": true,
+                    "state": {
+                      "type": "markdown",
+                      "state": {
+                        "file": "25_Knowledge_Base/Tokens/google/Google.md",
+                        "mode": "source",
+                        "source": true
+                      },
+                      "pinned": true,
+                      "icon": "lucide-file",
+                      "title": "Google"
+                    }
+                  },
+                  {
+                    "id": "da196d06ed470a3d",
+                    "type": "leaf",
+                    "pinned": true,
+                    "state": {
+                      "type": "markdown",
+                      "state": {
+                        "file": "25_Knowledge_Base/Tokens/tokens/Kilo Code.md",
+                        "mode": "source",
+                        "source": true
+                      },
+                      "pinned": true,
+                      "icon": "lucide-file",
+                      "title": "Kilo Code"
+                    }
+                  },
+                  {
+                    "id": "1760def63c32fb90",
+                    "type": "leaf",
+                    "state": {
+                      "type": "markdown",
+                      "state": {
+                        "file": "10_Repositories/README.md",
+                        "mode": "source",
+                        "source": true
+                      },
+                      "icon": "lucide-file",
+                      "title": "README"
+                    }
+                  },
+                  {
+                    "id": "5510b63b56bad9b1",
+                    "type": "leaf",
+                    "state": {
+                      "type": "markdown",
+                      "state": {
+                        "file": "10_Repositories/Obsidian.Vault.Architect/README.md",
+                        "mode": "source",
+                        "source": true
+                      },
+                      "icon": "lucide-file",
+                      "title": "README"
+                    }
+                  },
+                  {
+                    "id": "68e38b115c70ffe7",
+                    "type": "leaf",
+                    "state": {
+                      "type": "markdown",
+                      "state": {
+                        "file": "10_Repositories/LLM/Claude/Feature-Workstream-Inventory.md",
+                        "mode": "source",
+                        "source": true
+                      },
+                      "icon": "lucide-file",
+                      "title": "Feature-Workstream-Inventory"
+                    }
+                  },
+                  {
+                    "id": "343ca15f8968ecac",
+                    "type": "leaf",
+                    "state": {
+                      "type": "markdown",
+                      "state": {
+                        "file": "10_Repositories/QiSL.Platform.Frontend/MainWorktree/docs/Repo.md",
+                        "mode": "preview",
+                        "source": true
+                      },
+                      "icon": "lucide-file",
+                      "title": "Repo"
+                    }
+                  },
+                  {
+                    "id": "a6630ca109adfe1f",
+                    "type": "leaf",
+                    "state": {
+                      "type": "markdown",
+                      "state": {
+                        "file": "10_Repositories/QiSL.Platform.Frontend/15935-data-grid-pr-cleanup/docs/data-grid-proposed-architecture.md",
+                        "mode": "preview",
+                        "source": true
+                      },
+                      "icon": "lucide-file",
+                      "title": "data-grid-proposed-architecture"
+                    }
+                  },
+                  {
+                    "id": "c841507f6f40d27c",
+                    "type": "leaf",
+                    "state": {
+                      "type": "markdown",
+                      "state": {
+                        "file": "25_Knowledge_Base/Tokens/azure/ISL Azure Portal.md",
+                        "mode": "source",
+                        "source": true
+                      },
+                      "icon": "lucide-file",
+                      "title": "ISL Azure Portal"
+                    }
+                  }
+                ],
+                "currentTab": 10
+              },
+              {
+                "id": "f3e35e4638eb5a4c",
+                "type": "tabs",
+                "dimension": 32.986627043090635,
+                "children": [
+                  {
+                    "id": "42a659d1ab5b1ee0",
+                    "type": "leaf",
+                    "pinned": true,
+                    "state": {
+                      "type": "terminal-view",
+                      "state": {
+                        "tabs": [
+                          {
+                            "name": "Terminal 1",
+                            "color": "",
+                            "cwd": "C:\\Repos\\gd-obsidian-agentic-vault\\vault",
+                            "bufferSerial": "\r\n\u001b[96m⚡ Profile Load Timing:\r\n\u001b[92m      14ms (+  14ms) - Profile Start\r\n\u001b[91m     155ms (+ 141ms) - Terminal-Icons setup (deferred)\r\n     814ms (+ 659ms) - Prompt initialization\r\n\u001b[92m     844ms (+  30ms) - PSReadLine configuration\r\n     858ms (+  14ms) - Core functions defined\r\n     866ms (+   8ms) - Zoxide setup\r\n     876ms (+  10ms) - Completions registered\r\n\u001b[96m   Total: 896ms\r\n\u001b[93mommand list\r\n\u001b[38;2;255;221;134mgrego@PC-GMAN \u001b[38;2;66;169;255mC:\\Repos\\gd-obsidian-agentic-vault\\vault \u001b[37mgit:\u001b[38;2;255;221;134mmain \u001b[38;2;209;105;113m?28 ~568 -452\r\n\u001b[38;2;255;221;134m>\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\u001b[12A\u001b[2C\u001b[0m\u001b[?1004h"
+                          }
+                        ],
+                        "activeIndex": 0
+                      },
+                      "pinned": true,
+                      "icon": "terminal",
+                      "title": "Terminal"
+                    }
+                  },
+                  {
+                    "id": "65b99d0c874c13b1",
+                    "type": "leaf",
+                    "pinned": true,
+                    "state": {
+                      "type": "ace-snippets-editor",
+                      "state": {
+                        "file": "zz-custom-fonts.css"
+                      },
+                      "pinned": true,
+                      "icon": "code-xml",
+                      "title": "Snippets editor"
+                    }
+                  }
+                ]
+              }
+            ],
+            "direction": "horizontal"
+          }
+        ],
+        "direction": "vertical"
+      },
+      "left": {
+        "id": "65e8c50e87177051",
+        "type": "split",
+        "children": [
+          {
+            "id": "84e344c8bbb16811",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "17ecfcf82b4c1f4a",
+                "type": "leaf",
+                "state": {
+                  "type": "file-explorer",
+                  "state": {
+                    "sortOrder": "alphabetical",
+                    "autoReveal": true
+                  },
+                  "icon": "lucide-folder-closed",
+                  "title": "Files"
+                }
+              },
+              {
+                "id": "076f0d360cee24a6",
+                "type": "leaf",
+                "state": {
+                  "type": "search",
+                  "state": {
+                    "query": "SSE ",
+                    "matchingCase": false,
+                    "explainSearch": false,
+                    "collapseAll": false,
+                    "extraContext": false,
+                    "sortOrder": "alphabetical"
+                  },
+                  "icon": "lucide-search",
+                  "title": "Search"
+                }
+              },
+              {
+                "id": "328b9d642791241e",
+                "type": "leaf",
+                "state": {
+                  "type": "bookmarks",
+                  "state": {},
+                  "icon": "lucide-bookmark",
+                  "title": "Bookmarks"
+                }
+              },
+              {
+                "id": "7b67b2e877e2a8bd",
+                "type": "leaf",
+                "state": {
+                  "type": "context-workspaces-view",
+                  "state": {},
+                  "icon": "layout-grid",
+                  "title": "Context workspaces"
+                }
+              },
+              {
+                "id": "46ddb41cabf96553",
+                "type": "leaf",
+                "state": {
+                  "type": "vaultman-frame",
+                  "state": {},
+                  "icon": "lucide-vault",
+                  "title": "Vaultman Explorer"
+                }
+              }
+            ],
+            "currentTab": 3
+          },
+          {
+            "id": "3a85de1b5afd5199",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "6579ad70e22bcb7d",
+                "type": "leaf",
+                "state": {
+                  "type": "outline",
+                  "state": {
+                    "file": "25_Knowledge_Base/Tokens/azure/ISL Azure Portal.md",
+                    "followCursor": false,
+                    "showSearch": false,
+                    "searchQuery": ""
+                  },
+                  "icon": "lucide-list",
+                  "title": "Outline of ISL Azure Portal"
+                }
+              }
+            ]
+          }
+        ],
+        "direction": "horizontal",
+        "width": 718.5041885375977
+      },
+      "right": {
+        "id": "09c0d345d586add0",
+        "type": "split",
+        "children": [
+          {
+            "id": "fddbbebee1775e1d",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "1e3e5fffd7529566",
+                "type": "leaf",
+                "state": {
+                  "type": "backlink",
+                  "state": {
+                    "collapseAll": false,
+                    "extraContext": false,
+                    "sortOrder": "alphabetical",
+                    "showSearch": false,
+                    "searchQuery": "",
+                    "backlinkCollapsed": false,
+                    "unlinkedCollapsed": true
+                  },
+                  "icon": "links-coming-in",
+                  "title": "Backlinks"
+                }
+              },
+              {
+                "id": "1bf9dcb749ad4013",
+                "type": "leaf",
+                "state": {
+                  "type": "outgoing-link",
+                  "state": {
+                    "linksCollapsed": false,
+                    "unlinkedCollapsed": true
+                  },
+                  "icon": "links-going-out",
+                  "title": "Outgoing links"
+                }
+              },
+              {
+                "id": "52f7505d895ba20d",
+                "type": "leaf",
+                "state": {
+                  "type": "tag",
+                  "state": {
+                    "sortOrder": "frequency",
+                    "useHierarchy": true,
+                    "showSearch": false,
+                    "searchQuery": ""
+                  },
+                  "icon": "lucide-tags",
+                  "title": "Tags"
+                }
+              },
+              {
+                "id": "7eedb4e09787648c",
+                "type": "leaf",
+                "state": {
+                  "type": "all-properties",
+                  "state": {
+                    "sortOrder": "frequency",
+                    "showSearch": false,
+                    "searchQuery": ""
+                  },
+                  "icon": "lucide-archive",
+                  "title": "All properties"
+                }
+              },
+              {
+                "id": "2cc5021eba61dcb2",
+                "type": "leaf",
+                "state": {
+                  "type": "footnotes",
+                  "state": {
+                    "file": "25_Knowledge_Base/Tokens/google/Google.md"
+                  },
+                  "icon": "lucide-file-signature",
+                  "title": "Footnotes"
+                }
+              },
+              {
+                "id": "33725c603df4fee3",
+                "type": "leaf",
+                "state": {
+                  "type": "lns-links-panel",
+                  "state": {},
+                  "icon": "link",
+                  "title": "LNS links"
+                }
+              },
+              {
+                "id": "1f5b62f4c9afd4e5",
+                "type": "leaf",
+                "state": {
+                  "type": "file-properties",
+                  "state": {
+                    "file": "10_Repositories/QiSL.Platform.Backend/External Services/Keyloop/F15 V3 - Developer Sections Draft.md"
+                  },
+                  "icon": "lucide-info",
+                  "title": "File properties for F15 V3 - Developer Sections Draft"
+                }
+              },
+              {
+                "id": "1cb33a0b6cc7bdf3",
+                "type": "leaf",
+                "state": {
+                  "type": "copilot-chat-view",
+                  "state": {},
+                  "icon": "message-square",
+                  "title": "Copilot"
+                }
+              },
+              {
+                "id": "39d4bd9944ccff24",
+                "type": "leaf",
+                "state": {
+                  "type": "mermaid-toolbar-view",
+                  "state": {},
+                  "icon": "trident-custom",
+                  "title": "Mermaid Toolbar"
+                }
+              }
+            ],
+            "currentTab": 7
+          }
+        ],
+        "direction": "horizontal",
+        "width": 480.5
+      },
+      "left-ribbon": {
+        "hiddenItems": {
+          "zk-prefixer:Create new unique note": false,
+          "audio-recorder:Start/stop recording": false,
+          "switcher:Open quick switcher": false,
+          "graph:Open graph view": false,
+          "canvas:Create new canvas": false,
+          "daily-notes:Open today's daily note": false,
+          "templates:Insert template": false,
+          "command-palette:Open command palette": false,
+          "bases:Create new base": false,
+          "vaultman:Open Vaultman": false,
+          "ace-code-editor:Open CSS snippet manager": false,
+          "context-workspaces:Context workspaces": false,
+          "markdown-importer:Open format converter": false,
+          "workspaces:Manage workspace layouts": false,
+          "lean-terminal:Open terminal": false,
+          "lns-directories:Link external path": false,
+          "templater-obsidian:Templater": false,
+          "copilot:Open Copilot Chat": false,
+          "obdrawio:New diagram": false,
+          "mermaid-tools:Open Mermaid Toolbar": false
+        }
+      },
+      "active": "7b67b2e877e2a8bd",
+      "mtime": "2026-07-24T05:13:59+02:00"
+    }
+  },
+  "active": "tokens"
+}

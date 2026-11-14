@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Link, useParams } from 'react-router-dom';
-import { getVaultFiles, VaultFile, getHemisphereForPath } from './lib/vault';
+import { getVaultFiles, loadVaultLayout, VaultFile, getHemisphereForPath } from './lib/vault';
 import { MarkdownViewer } from './components/MarkdownViewer';
 import { Sidebar, MobileMenuButton } from './components/Sidebar';
 import { DashboardPage } from './pages/DashboardPage';
@@ -8,6 +8,8 @@ import { HemispherePage } from './pages/HemispherePage';
 import { TemplatesPage } from './pages/TemplatesPage';
 import { SkillsPage } from './pages/SkillsPage';
 import { SystemPage } from './pages/SystemPage';
+import { OrchestratorPage } from './pages/OrchestratorPage';
+import { SessionsPage } from './pages/SessionsPage';
 import { VauMIcon } from './components/VauMIcon';
 
 // ============================================
@@ -40,7 +42,7 @@ function NotePage({ files }: { files: VaultFile[] }) {
   const hemisphereLabels: Record<string, { badge: string; label: string }> = {
     left: { badge: 'badge-left', label: 'Left Hemisphere' },
     right: { badge: 'badge-right', label: 'Right Hemisphere' },
-    archive: { badge: 'badge-archive', label: 'Archive' },
+    assets: { badge: 'badge-archive', label: 'Assets' },
     system: { badge: 'badge-system', label: 'System' },
   };
   const hemi = hemisphereLabels[hemisphere];
@@ -147,9 +149,15 @@ function LoadingScreen() {
 export default function App() {
   const [files, setFiles] = useState<VaultFile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [layoutError, setLayoutError] = useState<string | null>(null);
 
   useEffect(() => {
-    getVaultFiles()
+    // The layout must be loaded before files are classified into Zones.
+    loadVaultLayout()
+      .catch(err => {
+        setLayoutError(err.message);
+      })
+      .then(() => getVaultFiles())
       .then(loadedFiles => {
         setFiles(loadedFiles);
         setLoading(false);
@@ -164,6 +172,15 @@ export default function App() {
     return <LoadingScreen />;
   }
 
+  if (layoutError) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center bg-[var(--color-bg-primary)] px-8 text-center">
+        <h1 className="text-xl font-bold text-[var(--color-text-primary)] mb-3">This Vault has no usable layout</h1>
+        <p className="text-sm text-[var(--color-text-secondary)] max-w-2xl whitespace-pre-wrap font-mono">{layoutError}</p>
+      </div>
+    );
+  }
+
   return (
     <BrowserRouter>
       <AppLayout files={files}>
@@ -173,6 +190,8 @@ export default function App() {
           <Route path="/templates" element={<TemplatesPage files={files} />} />
           <Route path="/skills" element={<SkillsPage files={files} />} />
           <Route path="/system" element={<SystemPage files={files} />} />
+          <Route path="/orchestrator" element={<OrchestratorPage />} />
+          <Route path="/sessions" element={<SessionsPage />} />
           <Route path="/note/:basename" element={<NotePage files={files} />} />
         </Routes>
       </AppLayout>

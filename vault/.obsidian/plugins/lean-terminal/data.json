@@ -1,0 +1,112 @@
+{
+  "shellPath": "",
+  "shellPathWin": "",
+  "shellPathMac": "",
+  "shellPathLinux": "",
+  "startupCommand": "",
+  "fontSize": 14,
+  "fontFamily": "\"Roboto Mono\"",
+  "lineHeight": 1,
+  "minimumContrastRatio": 4.5,
+  "theme": "monokai",
+  "backgroundColor": "",
+  "cursorBlink": true,
+  "cursorStyle": "block",
+  "copyOnSelect": true,
+  "scrollback": 5000,
+  "ribbonIcon": "terminal",
+  "defaultLocation": "bottom",
+  "notifyOnCompletion": false,
+  "notificationSound": "beep",
+  "notificationVolume": 50,
+  "searchShortcut": "Ctrl+Alt+F",
+  "persistBuffer": true,
+  "recentSessionsMax": 10,
+  "recentSessions": [
+    {
+      "name": "Terminal 1",
+      "color": "",
+      "cwd": "C:\\Repos\\gd-obsidian-agentic-vault\\vault",
+      "bufferSerial": "Microsoft Windows [Version 10.0.26200.9711]\r\n(c) Microsoft Corporation. All rights reserved.\r\n\r\nC:\\Repos\\gd-obsidian-agentic-vault\\vault>\u001b[?1004h",
+      "closedAt": 1794558984440
+    },
+    {
+      "name": "Terminal 1",
+      "color": "",
+      "cwd": "C:\\Repos\\gd-obsidian-agentic-vault\\vault",
+      "bufferSerial": "\r\n\u001b[96m⚡ Profile Load Timing:\r\n\u001b[92m      14ms (+  14ms) - Profile Start\r\n\u001b[91m     155ms (+ 141ms) - Terminal-Icons setup (deferred)\r\n     814ms (+ 659ms) - Prompt initialization\r\n\u001b[92m     844ms (+  30ms) - PSReadLine configuration\r\n     858ms (+  14ms) - Core functions defined\r\n     866ms (+   8ms) - Zoxide setup\r\n     876ms (+  10ms) - Completions registered\r\n\u001b[96m   Total: 896ms\r\n\u001b[93mommand list\r\n\u001b[38;2;255;221;134mgrego@PC-GMAN \u001b[38;2;66;169;255mC:\\Repos\\gd-obsidian-agentic-vault\\vault \u001b[37mgit:\u001b[38;2;255;221;134mmain \u001b[38;2;209;105;113m?28 ~568 -452\r\n\u001b[38;2;255;221;134m>\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\u001b[12A\u001b[2C\u001b[0m\u001b[?1004h",
+      "closedAt": 1784862839959
+    },
+    {
+      "name": "Terminal 1",
+      "color": "",
+      "cwd": "C:\\Repos\\gd-obsidian-agentic-vault\\vault",
+      "bufferSerial": "\r\n\u001b[96m⚡ Profile Load Timing:\r\n\u001b[92m       7ms (+   7ms) - Profile Start\r\n\u001b[91m     128ms (+ 121ms) - Terminal-Icons setup (deferred)\r\n     850ms (+ 722ms) - Prompt initialization\r\n\u001b[92m     882ms (+  32ms) - PSReadLine configuration\r\n     899ms (+  17ms) - Core functions defined\r\n     912ms (+  13ms) - Zoxide setup\r\n     925ms (+  13ms) - Completions registered\r\n\u001b[96m   Total: 956ms\r\n\r\n\u001b[93mType 'Show-Help' for command list\r\n\u001b[38;2;255;221;134mgrego@PC-GMAN \u001b[38;2;66;169;255mC:\\Repos\\gd-obsidian-agentic-vault\\vault \u001b[37mgit:\u001b[38;2;255;221;134mmain \u001b[38;2;209;105;113m?25 ~567 -452\r\n\u001b[38;2;255;221;134m> \u001b[?1004h",
+      "closedAt": 1784719329497
+    },
+    {
+      "name": "Terminal 1",
+      "color": "",
+      "cwd": "C:\\Repos\\gd-obsidian-agentic-vault\\vault",
+      "bufferSerial": "\r\n\u001b[33mTerminal binaries not installed.\r\n\u001b[0mGo to Settings → Terminal to download them.\u001b[1B\u001b[43D",
+      "closedAt": 1782273685477
+    }
+  ],
+  "enableClaudeIntegration": false,
+  "claudeSessionsDir": "",
+  "claudeRegistryPath": "claude-sessions.md",
+  "claudeSessionsMax": 25,
+  "tabColorTintsBackground": true,
+  "tabColors": [
+    {
+      "name": "None",
+      "value": "",
+      "tintStrength": 0,
+      "builtin": true
+    },
+    {
+      "name": "Vermilion",
+      "value": "#FC3634",
+      "tintStrength": 12,
+      "builtin": true
+    },
+    {
+      "name": "Sky Blue",
+      "value": "#25D0F7",
+      "tintStrength": 12,
+      "builtin": true
+    },
+    {
+      "name": "Gold",
+      "value": "#FFD700",
+      "tintStrength": 12,
+      "builtin": true
+    },
+    {
+      "name": "Mint",
+      "value": "#18BC9C",
+      "tintStrength": 12,
+      "builtin": true
+    },
+    {
+      "name": "Azure",
+      "value": "#007BFF",
+      "tintStrength": 12,
+      "builtin": true
+    },
+    {
+      "name": "Purple",
+      "value": "#A991D4",
+      "tintStrength": 12,
+      "builtin": true
+    }
+  ],
+  "tabBarPosition": "top",
+  "wikiLinkAutocomplete": false,
+  "wikiLinkInsertMode": "wikilink",
+  "clickableFilePaths": true,
+  "readlineShortcuts": true,
+  "keepFocusOnEscape": true,
+  "showUpdateNotice": true,
+  "lastSeenVersion": "1.6.1"
+}

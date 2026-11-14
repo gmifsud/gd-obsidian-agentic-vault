@@ -1,47 +1,56 @@
 # Agent Memory & System Prompt
 
-You are an AI Agent (e.g., Gemini, Claude Code, Aider, Codex, Copilot, Cursor) operating within a "Split-Brain" Obsidian Vault.
+You are an AI Agent operating within a "Split-Brain" Obsidian Vault (Vau-M).
 
-## Supported Agents & Functionalities
-Different AI agents can be leveraged within this vault based on their strengths:
-- **Codex & Copilot**: Best utilized for inline code generation, scaffolding YAML frontmatter, and writing automation scripts (e.g., `scripts/update_moc.js`). They excel at translating raw human thoughts from the Left Hemisphere into structured DevOps pipelines, Git workflows, or CLI commands in the Right Hemisphere.
-- **Gemini, Claude Code, Aider, & Cursor**: Ideal for broader vault refactoring, executing multi-step custom commands (like `/new` or `/today`), and maintaining MOC indexes through complex reasoning and file-system operations.
+## Initialization Directive
+Before starting any task or workflow, you MUST read the following files in the `vault/` directory:
+1. `vault/CLAUDE.md` — The bootloader instructions.
+2. `vault/SOUL.md` — Your core identity, tone guidelines, and directory permissions.
+3. `vault/MEMORY.md` — The rolling session ledger (read the current focus, active blockers, and last 5 logs).
 
 ## Vault Architecture: The Split-Brain Model
 
-### 🧠 Left Hemisphere (HUMAN DOMAIN - READ ONLY)
-These directories contain the human's raw thoughts, daily logs, and unstructured ideas. 
-**RULE:** You may READ these folders for context, but you MUST NEVER WRITE to or modify them.
-- `01_Journal/`
-- `02_Human_Thoughts/`
+### 🧠 Left Hemisphere (HUMAN DOMAIN - READ-ONLY)
+These directories contain human-authored thoughts, journals, and logs.
+**RULE:** You have READ-ONLY access. Do not write to, edit, or delete any files in:
+- `vault/01_Journal/`
+- `vault/02_Human_Thoughts/`
+
+**EXCEPTION:** The `/weekly-review` protocol may write into `vault/01_Journal/Reviews/`.
 
 ### 🤖 Right Hemisphere (AI DOMAIN - READ/WRITE)
-These directories contain structured knowledge, SOPs, and documentation. 
-**RULE:** You have full autonomy to WRITE, organize, and maintain these folders using strict YAML templates.
-- `00_MOCs/`
-- `10_Repositories/`
-- `20_DevOps/`
-- `30_Git/`
-- `80_Templates/`
-- `90_Assets/`
+These directories contain agent-authored structured knowledge, templates, MOCs, and skills.
+**RULE:** You have full read/write autonomy in:
+- `vault/00_MOCs/`
+- `vault/10_Repositories/`
+- `vault/15_Prototype_Designs/`
+- `vault/20_DevOps/`
+- `vault/25_Knowledge_Base/`
+- `vault/30_Git/`
+- `vault/40_Agent_Skills/`
+- `vault/50_Databases/`
+- `vault/60_Canvas_Maps/`
+- `vault/80_Templates/`
 
-## Custom Workflows
+### 🗄️ Assets Zone (STATIC FILES - READ/WRITE)
+Static files (images, diagrams, PDFs) referenced by notes. Not part of either Hemisphere.
+**RULE:** You may add and update files in:
+- `vault/90_Assets/`
 
-### Command: `/new [input]`
-**Trigger:** The user provides raw text, a thought, or points to a file.
-**Action:**
-1. Analyze the input to determine its domain (Repo, DevOps, Git).
-2. Read the corresponding template from `80_Templates/`.
-3. Generate a new, strictly formatted Markdown file.
-4. Save the file in the correct Right Hemisphere folder following naming conventions (e.g., `10_Repositories/Repo - [Name].md`).
-5. **MOC Update Protocol**: You MUST dynamically update the corresponding MOC.
-   - **Automated**: Run `node scripts/update_moc.js <path/to/new/file.md>`
-   - **Manual**: Open the relevant MOC (e.g., `00_MOCs/Repositories_MOC.md`), locate the `## Static Agent Index` section, and append: `- [[File Name]] | key: value`
+### 🚫 Unmanaged Directories (DO NOT READ OR WRITE)
+`vault/copilot/` and `vault/Connections/` belong to other tools. Leave them alone.
 
-### Command: `/today`
-**Trigger:** The user asks for today's agenda or priorities.
-**Action:**
-1. Scan the most recent file in `01_Journal/`.
-2. Extract open tasks, blockers, or mentions of specific repositories/infrastructure.
-3. Cross-reference these mentions with the Right Hemisphere (`10_Repositories/`, `20_DevOps/`) to gather technical context.
-4. Output a prioritized task list in the CLI, complete with technical context and suggested next steps. Do not write this list to the vault; output it to the console.
+The authoritative layout is `vault/vault.config.yaml`. Check any path with `python backend/vault_manager.py may-write <path>`.
+
+## Custom Workflows & Tooling
+
+### 1. Template Hydration & Note Scaffolding
+Use `backend/vault_manager.py` commands to create notes and inject templates correctly.
+- Scaffolding: `python backend/vault_manager.py create-folder` / `inject-template`
+
+### 2. Map of Content (MOC) Index Updates
+When writing a new note in the Right Hemisphere or a new file in the Assets Zone, you must index it in its Map of Content (MOC) if the Vault layout names one for that directory.
+- Auto-Update MOC: `python backend/vault_manager.py auto-update-moc <path/to/note>`
+
+### 3. Session Persistence
+Before concluding your session, you MUST append a bullet to the rolling log in `vault/MEMORY.md` and compact the memory using `python backend/query.py compact`.

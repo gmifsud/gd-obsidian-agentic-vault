@@ -1,3 +1,21 @@
 [
-  "pieces-for-developers"
+  "bulk-tag-manager",
+  "obsidian-style-settings",
+  "figma-embed",
+  "ace-code-editor",
+  "context-workspaces",
+  "markdown-hijacker",
+  "obsidian-better-command-palette",
+  "cmdr",
+  "lean-terminal",
+  "lns-directories",
+  "tab-navigator",
+  "obsidian-table-generator",
+  "editing-toolbar",
+  "templater-obsidian",
+  "copilot",
+  "obdrawio",
+  "mermaid-popup",
+  "mermaid-tools",
+  "external-vault"
 ]

@@ -1,0 +1,320 @@
+/* Default */
+.markdown-hijacker-settings h2{
+  font-size: var(--h2-size);
+}
+
+/* Context Menu - Synaptic Bridge Header */
+.menu-item[aria-disabled="true"] .menu-item-title:has-text("Synaptic Bridge") {
+  font-weight: bold;
+}
+
+/* Alternative: 모든 비활성화된 메뉴 아이템 중 "Synaptic Bridge" 텍스트를 가진 것 */
+.menu .menu-item[aria-disabled="true"]:has(.lucide-zap) {
+  font-weight: bold;
+}
+
+.markdown-hijacker-modal button,
+.markdown-hijacker-settings input[type="checkbox"],
+.markdown-hijacker-settings .checkbox-container,
+.markdown-hijacker-settings summary,
+.markdown-hijacker-settings button{
+  cursor: pointer;
+}
+
+.markdown-hijacker-settings .setting-item{
+  border: 0;
+}
+
+.markdown-hijacker-settings button{
+  cursor: pointer;
+}
+
+.setting-section-header{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.vault-folder-children.collapsed {
+	display: none;
+}
+
+.vault-folder-children {
+	display: block;
+}
+
+.vault-folder-toggle,
+.vault-folder-icon {
+	width: 16px;
+	height: 16px;
+}
+
+.sync-connection-item {
+  margin-bottom: 0.7em;
+  padding: 0 1em;
+  background-color: var(--background-primary);
+  border: 1px solid var(--color-base-30);
+  border-radius: 1em;
+  border-right: 1px solid var(--color-base-50);
+  border-bottom: 1px solid var(--color-base-50);
+}
+
+.sync-connection-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sync-connection-header-left {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.sync-connection-header-left .sync-connection-direction {
+  color: var(--tag-color);
+  background-color: var(--tag-background);
+  border: var(--tag-border-width) solid var(--tag-border-color);
+  font-size: var(--tag-size);
+  font-weight: var(--tag-weight);
+  padding: var(--tag-padding-y) var(--tag-padding-x);
+  border-radius: var(--tag-radius);
+}
+
+.sync-connection-header .mod-toggle{
+  padding: 0;
+}
+
+
+.sync-actions-container {
+  display: flex;
+  justify-content: right;
+  padding: 1em 0 0.5em 0;
+}
+
+.sync-actions-container .setting-item{
+  padding: 0.5em 0;
+}
+
+.sync-connection-paths {
+  display: flex;
+  gap: 1em;
+  margin-bottom: 1em;
+}
+
+.sync-connection-header {
+  margin: 1.5em 0;
+}
+
+.sync-name-display{
+  cursor: text;
+  margin: 0;
+}
+
+.sync-connection-paths > div{
+  flex: 1;
+}
+
+.sync-connection-paths .setting-item {
+  flex-direction: column;
+  padding: 0;
+  width: 100%;
+  gap: 0.2em;
+}
+
+.sync-connection-paths .setting-item > div{
+  width: 100%;
+}
+
+.sync-connection-paths .setting-item > *:first-child {
+  margin-inline-end: 0;
+}
+
+.sync-connection-paths .setting-item-name{
+  line-height: 2;
+}
+
+.sync-connection-paths input {
+  flex: 1;
+}
+
+.sync-connection-paths .setting-item-info{
+  display: flex;
+  gap: 0.3em;
+  font-weight: bold;
+}
+
+.sync-connection-item summary {
+  color: var(--color-accent);
+  font-size: 0.9em;
+}
+
+.sync-connection-item summary::-webkit-details-marker {
+  display: none;            /* 웹킷 계열 (Chrome, Edge 등)에서 마커 제거 */
+}
+
+.sync-advanced-content {
+  border: 1px solid var(--divider-color);
+  padding: 0.7em 0.5em 0.5em 0.5em;
+  margin-top: 0.5em;
+  border-radius: 0.7em;
+}
+
+/* Modal */
+.markdown-hijacker-modal h4{
+  margin: 0;
+}
+
+.modal:has(.markdown-hijacker-modal-folder-selection){
+  padding-top: var(--size-4-2);
+}
+
+.modal:has(.markdown-hijacker-modal-folder-selection) .modal-header{
+  margin: 0;
+}
+
+.vault-folder-tree-container {
+  padding: 10px 0px 10px 5px;
+  background-color: var(--background-secondary);
+  border: 1px solid var(--divider-color);
+  border-radius: 10px;
+}
+
+.vault-folder-item:hover {
+  color: var(--color-accent);
+}
+
+/* Explorer Sync Decorator */
+.sync-folder-badge {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  margin-left: 6px;
+  padding: 2px 6px;
+  background-color: var(--color-accent);
+  color: var(--text-on-accent);
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sync-folder-badge:hover {
+  opacity: 0.8;
+}
+
+/* Markdown Hijacker Settings */
+.markdown-hijacker-settings textarea {
+  min-height: 100px;
+  width: 180px;
+  resize: none;
+}
+
+/* BaseSuggest */
+.markdown-hijacker-settings .hidden {
+  display: none !important;
+}
+
+.markdown-hijacker-settings .input-suggest-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.markdown-hijacker-settings .suggestion-container {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  z-index: 9999;
+  background: var(--background-secondary);
+  border: 1px solid var(--divider-color);
+  border-radius: 6px;
+  max-height: 300px;
+  overflow-y: auto;
+  min-width: 120px;
+}
+
+.markdown-hijacker-settings .suggestion-item.is-selected {
+  background: var(--background-modifier-hover);
+}
+
+.markdown-hijacker-settings .input-suggest-wrapper input{
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.markdown-hijacker-settings .suggestion-item{
+  text-align: left;
+  word-break: break-all;
+}
+
+.markdown-hijacker-settings .suggestion-item:hover {
+  cursor: pointer;
+}
+
+/* openVaultFolderSelectionDialog */
+.vault-folder-tree {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.vault-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 15px;
+}
+
+.vault-folder-item {
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+.vault-folder-toggle {
+  margin-right: 6px;
+}
+
+.vault-folder-icon {
+  margin-right: 6px;
+}
+
+.vault-folder-children {
+  transition: max-height 0.2s ease-out;
+}
+
+.vault-folder-item.is-hovered {
+  background-color: var(--background-modifier-hover);
+}
+
+.vault-folder-depth-0 { padding-left: 0; }
+.vault-folder-depth-1 { padding-left: 20px; }
+.vault-folder-depth-2 { padding-left: 40px; }
+.vault-folder-depth-3 { padding-left: 60px; }
+.vault-folder-depth-4 { padding-left: 80px; }
+.vault-folder-depth-5 { padding-left: 100px; }
+.vault-folder-depth-6 { padding-left: 120px; }
+.vault-folder-depth-7 { padding-left: 140px; }
+.vault-folder-depth-8 { padding-left: 160px; }
+.vault-folder-depth-9 { padding-left: 180px; }
+.vault-folder-depth-10 { padding-left: 200px; }
+
+.vault-folder-count {
+  color: var(--text-faint);
+  margin-left: 4px;
+  font-size: 0.95em;
+}
+
+
+.markdown-hijacker-settings .setting-item-heading .setting-item-name{
+  font-size: var(--h2-size);
+  color: var(--h2-color);
+  line-height: var(--h2-line-height);
+}
+
+

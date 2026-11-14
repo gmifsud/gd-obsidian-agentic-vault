@@ -4,7 +4,15 @@ import path from 'path';
 import {defineConfig, loadEnv} from 'vite';
 
 export default defineConfig(({mode}) => {
-  const env = loadEnv(mode, '.', '');
+  // Load environment variables from the frontend directory AND the repository root directory
+  const env = {
+    ...loadEnv(mode, path.resolve(__dirname, '..'), ''),
+    ...loadEnv(mode, '.', '')
+  };
+
+  const apiPort = env.VITE_API_PORT || env.PORT || '3001';
+  const devPort = parseInt(env.VITE_PORT || '3000');
+
   return {
     plugins: [react(), tailwindcss()],
     define: {
@@ -18,13 +26,13 @@ export default defineConfig(({mode}) => {
     },
     server: {
       host: '0.0.0.0',
-      port: 3000,
+      port: devPort,
       fs: {
         allow: ['..'],
       },
       proxy: {
         '/api': {
-          target: 'http://127.0.0.1:3001',
+          target: `http://127.0.0.1:${apiPort}`,
           changeOrigin: true,
           secure: false,
         },

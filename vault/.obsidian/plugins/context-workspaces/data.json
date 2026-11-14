@@ -1,0 +1,41 @@
+{
+  "spaces": {
+    "default": {
+      "name": "default",
+      "icon": "✨",
+      "description": "",
+      "autoSave": true,
+      "theme": "One Oracle Developer",
+      "themeMode": "system"
+    },
+    "tokens": {
+      "name": "tokens",
+      "icon": "🔐",
+      "autoSave": true,
+      "theme": "One Oracle Developer",
+      "themeMode": "dark"
+    },
+    "claude-cowork-recovery": {
+      "name": "claude-cowork-recovery",
+      "icon": "🏗️",
+      "description": "",
+      "autoSave": true,
+      "theme": "One Oracle Developer",
+      "themeMode": "dark"
+    }
+  },
+  "currentSpaceId": "tokens",
+  "spaceOrder": [
+    "default",
+    "tokens",
+    "claude-cowork-recovery"
+  ],
+  "sidebarViewMode": "list",
+  "activateViewOnStartup": true,
+  "showStatusBar": true,
+  "workspaceLastSeen": {
+    "default": 1782701958246,
+    "tokens": 1782701958246,
+    "claude-cowork-recovery": 1782701958246
+  }
+}

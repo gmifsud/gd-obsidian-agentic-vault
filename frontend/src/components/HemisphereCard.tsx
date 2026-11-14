@@ -1,7 +1,7 @@
 import { Brain, Bot, Archive, Zap } from 'lucide-react';
 
 interface HemisphereCardProps {
-  type: 'left' | 'right' | 'archive' | 'system';
+  type: 'left' | 'right' | 'assets' | 'system';
   folders: string[];
   fileCount: number;
   description?: string;
@@ -29,11 +29,11 @@ const HEMISPHERE_CONFIG = {
     accentColor: 'var(--color-right-hemisphere)',
     bgGlow: 'from-cyan-500/5 to-transparent',
   },
-  archive: {
+  assets: {
     icon: Archive,
-    label: '🗄️ Archive',
-    subtitle: 'Static Assets',
-    permission: 'IGNORE',
+    label: '🗄️ Assets',
+    subtitle: 'Static Files',
+    permission: 'READ / WRITE',
     cardClass: 'hemisphere-archive',
     badgeClass: 'badge-archive',
     accentColor: 'var(--color-archive)',

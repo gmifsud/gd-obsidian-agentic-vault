@@ -2,11 +2,21 @@ import typer
 from rich.console import Console
 import requests
 import os
+import sys
+import io
 import re
 import json
 import sqlite3
+from functools import lru_cache
 from pathlib import Path
 from datetime import datetime
+
+from vault_layout import VaultLayout, VaultLayoutError, load_engine_vault
+
+# Force UTF-8 encoding for standard output/error on Windows to prevent UnicodeEncodeError
+if sys.platform.startswith("win"):
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 # Optional imports with warning fallbacks
 try:
@@ -24,7 +34,29 @@ except ImportError:
 app = typer.Typer(help="Query Manager: Execute background tasks, sync APIs, and run semantic search.")
 console = Console()
 
-VAULT_DIR = Path(__file__).resolve().parent.parent / "vault"
+err_console = Console(stderr=True)
+
+
+@lru_cache(maxsize=1)
+def _vault() -> VaultLayout:
+    """Load the Vault the Engine acts on, announce its root, or exit if it has no valid layout."""
+    try:
+        layout = load_engine_vault()
+    except VaultLayoutError as exc:
+        err_console.print(str(exc), style="bold red", markup=False)
+        raise typer.Exit(code=1)
+    err_console.print(f"Vault root: {layout.root}", markup=False)
+    return layout
+
+
+def _require_write_permission(layout: VaultLayout, path: Path | str) -> None:
+    """Exit with an explanation unless an agent may write ``path``."""
+    decision = layout.may_agent_write(path)
+    if not decision.allowed:
+        err_console.print(f"Refused to write {path}: {decision.reason}.", style="bold red", markup=False)
+        raise typer.Exit(code=1)
+
+
 DB_PATH = Path(__file__).resolve().parent / "vault_vectors.db"
 
 EMBED_INSTALL_HINT = (
@@ -91,7 +123,7 @@ def sync_notebooklm(file_path: str):
     target_path = Path(file_path).resolve()
     if not target_path.exists():
         # Try relative to VAULT_DIR
-        target_path = (VAULT_DIR / file_path).resolve()
+        target_path = (_vault().root / file_path).resolve()
         if not target_path.exists():
             console.print(f"[bold red]Error: File {file_path} does not exist.[/bold red]")
             raise typer.Exit(code=1)
@@ -113,10 +145,11 @@ def sync_notebooklm(file_path: str):
 def compact():
     """Compact the MEMORY.md file by retaining only the 5 most recent rolling logs."""
     console.print("[bold magenta]Compacting memory...[/bold magenta]")
-    memory_path = VAULT_DIR / "MEMORY.md"
+    memory_path = _vault().root / "MEMORY.md"
     if not memory_path.exists():
         console.print("[bold red]MEMORY.md not found[/bold red]")
         return
+    _require_write_permission(_vault(), memory_path)
 
     with open(memory_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
@@ -166,7 +199,7 @@ def heartbeat():
     console.print("[bold magenta]Executing heartbeat tasks...[/bold magenta]")
     
     # 1. Check APIs
-    user_md_path = VAULT_DIR / "USER.md"
+    user_md_path = _vault().root / "USER.md"
     calendar_active = False
     if user_md_path.exists():
         with open(user_md_path, "r", encoding="utf-8") as f:
@@ -179,14 +212,14 @@ def heartbeat():
     compact()
 
     # 3. Check Drafts (15_Prototype_Designs)
-    drafts_dir = VAULT_DIR / "15_Prototype_Designs"
+    drafts_dir = _vault().root / "15_Prototype_Designs"
     wips = []
     if drafts_dir.exists():
         wips = [f.name for f in drafts_dir.glob("*.md") if f.name != "README.md"]
     console.print(f"  [green]✓[/green] Checked Drafts. WIPs found: {wips}")
 
     # 4. Sync Knowledge Base (25_Knowledge_Base)
-    kb_dir = VAULT_DIR / "25_Knowledge_Base"
+    kb_dir = _vault().root / "25_Knowledge_Base"
     kb_files = []
     if kb_dir.exists():
         kb_files = [f.name for f in kb_dir.glob("*.md") if f.name != "README.md"]
@@ -196,8 +229,9 @@ def heartbeat():
     console.print("  [green]✓[/green] Sent notification: Heartbeat successful.")
 
     # Update HEARTBEAT.md checkbox status
-    heartbeat_path = VAULT_DIR / "HEARTBEAT.md"
+    heartbeat_path = _vault().root / "HEARTBEAT.md"
     if heartbeat_path.exists():
+        _require_write_permission(_vault(), heartbeat_path)
         with open(heartbeat_path, "r", encoding="utf-8") as f:
             hb_content = f.read()
 
@@ -223,10 +257,11 @@ def heartbeat():
 @app.command()
 def reset_heartbeat():
     """Reset HEARTBEAT.md: uncheck all items and remove the timestamp line. For cron job reuse."""
-    heartbeat_path = VAULT_DIR / "HEARTBEAT.md"
+    heartbeat_path = _vault().root / "HEARTBEAT.md"
     if not heartbeat_path.exists():
         console.print("[bold red]HEARTBEAT.md not found![/bold red]")
         raise typer.Exit(code=1)
+    _require_write_permission(_vault(), heartbeat_path)
 
     with open(heartbeat_path, "r", encoding="utf-8") as f:
         content = f.read()
@@ -258,7 +293,7 @@ def embed():
 
     console.print("[bold blue]Updating SQLite vector DB with files from 25_Knowledge_Base...[/bold blue]")
     
-    kb_dir = VAULT_DIR / "25_Knowledge_Base"
+    kb_dir = _vault().root / "25_Knowledge_Base"
     if not kb_dir.exists():
         console.print("[bold red]25_Knowledge_Base directory not found![/bold red]")
         return
@@ -276,7 +311,7 @@ def embed():
     model = TextEmbedding()
     
     for fpath in md_files:
-        rel_path = fpath.relative_to(VAULT_DIR).as_posix()
+        rel_path = fpath.relative_to(_vault().root).as_posix()
         title = fpath.stem
         try:
             with open(fpath, "r", encoding="utf-8") as f:

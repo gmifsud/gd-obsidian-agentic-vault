@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   Brain, LayoutDashboard, Layers, FileCode2, Cpu,
   Settings2, FileText, ChevronDown, ChevronRight,
-  Folder, Menu, X
+  Folder, Menu, X, Sliders, History
 } from 'lucide-react';
 import { useState } from 'react';
 import { VaultFile, getHemisphereForPath } from '../lib/vault';
@@ -120,7 +120,9 @@ const NAV_ITEMS = [
   { to: '/hemispheres', icon: Layers, label: 'Hemispheres' },
   { to: '/templates', icon: FileCode2, label: 'Templates' },
   { to: '/skills', icon: Cpu, label: 'Agent Skills' },
+  { to: '/sessions', icon: History, label: 'Sessions' },
   { to: '/system', icon: Settings2, label: 'System Files' },
+  { to: '/orchestrator', icon: Sliders, label: 'Orchestrator' },
 ];
 
 export function Sidebar({ files, collapsed, onToggle }: SidebarProps) {

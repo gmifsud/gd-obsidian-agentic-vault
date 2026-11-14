@@ -20,9 +20,16 @@ These directories contain structured knowledge, SOPs, and documentation.
 **RULE:** You have full autonomy to WRITE, organize, and maintain these folders using strict YAML templates.
 - `00_MOCs/`
 - `10_Repositories/`
+- `15_Prototype_Designs/`
 - `20_DevOps/`
+- `25_Knowledge_Base/`
 - `30_Git/`
+- `40_Agent_Skills/`
+- `50_Databases/`
+- `60_Canvas_Maps/`
 - `80_Templates/`
+
+### 🗄️ Assets Zone (STATIC FILES - READ/WRITE)
 - `90_Assets/`
 
 ## Custom Workflows

@@ -1,0 +1,1686 @@
+/*
+ * Oyaishi · 1.3.0
+ * 大谷石 · An understated, architectural writing environment.
+ * A matte, editorial workspace. No remote assets or runtime scripts.
+ * Sections: settings / foundations / palettes / semantic colors / workspace /
+ * navigation / typography / content / controls / visual workspaces / adaptation.
+ */
+
+/* @settings
+name: Oyaishi
+id: quiet-studio
+settings:
+  - id: qs-colors
+    title: Color & atmosphere
+    type: heading
+    level: 1
+  - id: qs-palette
+    title: Palette
+    description: Choose the matching color scheme in Appearance. Dark palettes apply in Dark mode; Sumi Light applies in Light mode. An incompatible or retired choice falls back to Sumi Ink (Dark) or Sumi Light (Light). System mode follows your OS.
+    type: class-select
+    allowEmpty: false
+    default: qs-sumi
+    options:
+      - label: Sumi Ink
+        value: qs-sumi
+      - label: Vermillion Dark
+        value: qs-vermilion
+      - label: Sumi Light
+        value: qs-sumi-light
+      - label: Sumi Silk
+        value: qs-sumi-silk
+      - label: Sumi Negative
+        value: qs-sumi-negative
+  - id: qs-accent-strength
+    title: Accent intensity
+    description: Strength of document highlights. Navigation and chrome remain neutral, including with preferences saved in earlier versions.
+    type: variable-number-slider
+    default: 14
+    min: 8
+    max: 24
+    step: 1
+  - id: qs-high-contrast
+    title: Stronger interface contrast
+    description: Brighter metadata and clearer dividers, without changing the palette.
+    type: class-toggle
+    default: false
+  - id: qs-type
+    title: Typography & measure
+    type: heading
+    level: 1
+  - id: qs-font-interface
+    title: Interface font
+    description: Local font family or CSS font stack. Native Appearance font choices take precedence.
+    type: variable-text
+    default: '"Inter", "Helvetica Neue", "Segoe UI", "Noto Sans", "Noto Sans CJK TC", "Noto Sans CJK JP", "PingFang TC", "Hiragino Sans", "Microsoft JhengHei", sans-serif'
+  - id: qs-font-body
+    title: Body font
+    description: Local font family or CSS font stack. Native Appearance font choices take precedence.
+    type: variable-text
+    default: '"Charter", "Bitstream Charter", "Iowan Old Style", "Palatino Linotype", "Noto Serif", "Noto Serif CJK TC", "Noto Serif CJK JP", "Songti TC", "Yu Mincho", serif'
+  - id: qs-font-mono
+    title: Monospace font
+    type: variable-text
+    default: '"SFMono-Regular", "Cascadia Code", "IBM Plex Mono", "Consolas", "Liberation Mono", "Noto Sans Mono CJK TC", monospace'
+  - id: qs-line-width
+    title: Editor width
+    description: Maximum note width; enable Readable line length in Editor settings. Narrow panes fit automatically.
+    type: variable-number-slider
+    default: 700
+    min: 480
+    max: 1040
+    step: 20
+    format: px
+  - id: qs-line-height
+    title: Editor line height
+    type: variable-number-slider
+    default: 1.75
+    min: 1.4
+    max: 2.1
+    step: 0.05
+  - id: qs-heading-scale
+    title: Heading scale
+    description: Multiplier for the six heading sizes and the inline note title.
+    type: variable-number-slider
+    default: 1
+    min: 0.85
+    max: 1.2
+    step: 0.05
+  - id: qs-layout
+    title: Geometry & density
+    type: heading
+    level: 1
+  - id: qs-comfortable
+    title: Comfortable sidebar spacing
+    description: Increase navigation row padding. Compact, readable rows are the default.
+    type: class-toggle
+    default: false
+  - id: qs-radius
+    title: Corner radius
+    description: Applies to controls, menus, and Canvas cards. Tabs and callouts stay square.
+    type: variable-number-slider
+    default: 2
+    min: 0
+    max: 6
+    step: 1
+    format: px
+*/
+
+/* 01 · Foundations. Native font, zoom, and readable-line-length preferences work. */
+body {
+  --qs-font-interface: "Inter", "Helvetica Neue", "Segoe UI", "Noto Sans", "Noto Sans CJK TC", "Noto Sans CJK JP", "PingFang TC", "Hiragino Sans", "Microsoft JhengHei", sans-serif;
+  --qs-font-body: "Charter", "Bitstream Charter", "Iowan Old Style", "Palatino Linotype", "Noto Serif", "Noto Serif CJK TC", "Noto Serif CJK JP", "Songti TC", "Yu Mincho", serif;
+  --qs-font-mono: "SFMono-Regular", "Cascadia Code", "IBM Plex Mono", "Consolas", "Liberation Mono", "Noto Sans Mono CJK TC", monospace;
+  --qs-line-width: 700px;
+  --qs-line-height: 1.75;
+  --qs-heading-scale: 1;
+  --qs-accent-strength: 14;
+  --qs-radius: 2px;
+  --font-interface-theme: var(--qs-font-interface);
+  --font-text-theme: var(--qs-font-body);
+  --font-monospace-theme: var(--qs-font-mono);
+  --font-text-size: 17px;
+  --font-ui-small: 13px;
+  --font-ui-smaller: 12px;
+  --line-height-normal: var(--qs-line-height);
+  --line-height-tight: 1.4;
+  --file-line-width: var(--qs-line-width);
+  --file-margins: 36px 28px 64px;
+  --p-spacing: 1.15rem;
+  --heading-spacing: 2.2em;
+  --radius-s: var(--qs-radius);
+  --radius-m: var(--qs-radius);
+  --radius-l: var(--qs-radius);
+  --radius-xl: var(--qs-radius);
+  --search-input-radius: var(--qs-radius);
+  --input-radius: var(--qs-radius);
+  --button-radius: var(--qs-radius);
+  --modal-radius: var(--qs-radius);
+  --menu-radius: var(--qs-radius);
+  --tab-radius: 0px;
+  --tab-radius-active: 0px;
+  --tab-curve: 0px;
+  --tab-outline-width: 0px;
+  --tab-font-size: var(--font-ui-small);
+  --tab-font-weight: 400;
+  --tab-width: 200px;
+  --header-height: 44px;
+  --ribbon-width: 40px;
+  --ribbon-padding: 14px 4px;
+  --status-bar-radius: 0px;
+  --status-bar-font-size: 11px;
+  --status-bar-border-width: 0;
+  --status-bar-position: relative;
+  --divider-width: 1px;
+  --divider-width-hover: 2px;
+  --divider-vertical-height: 100%;
+  --nav-item-size: var(--font-ui-small);
+  --nav-item-padding: 6px 10px 6px 20px;
+  --nav-item-parent-padding: 7px 10px 7px 20px;
+  --nav-item-margin-bottom: 0px;
+  --nav-item-children-padding-start: 8px;
+  --nav-item-children-margin-start: 12px;
+  --nav-item-radius: 0px;
+  --nav-item-weight: 400;
+  --nav-item-weight-active: 500;
+  --nav-heading-weight: 500;
+  --nav-indentation-guide-width: 0px;
+  --indentation-guide-width: 1px;
+  --icon-size: 17px;
+  --icon-stroke: 1.5px;
+  --icon-opacity: 0.85;
+  --icon-opacity-hover: 1;
+  --icon-opacity-active: 1;
+  --input-height: 32px;
+  --input-border-width: 1px;
+  --checkbox-radius: var(--qs-radius);
+  --checkbox-size: 16px;
+  --toggle-width: 34px;
+  --toggle-radius: var(--qs-radius);
+  --toggle-thumb-radius: 1px;
+  --slider-thumb-radius: 1px;
+  --slider-track-height: 3px;
+  --slider-thumb-width: 12px;
+  --slider-thumb-height: 16px;
+  --modal-border-width: 1px;
+  --prompt-border-width: 1px;
+  --menu-border-width: 1px;
+  --menu-padding: 5px;
+  --prompt-width: 640px;
+  --prompt-input-height: 54px;
+  --prompt-max-width: calc(100vw - 32px);
+  --prompt-max-height: 80vh;
+
+  /* Shared color roles. Palettes override tokens, never component geometry. */
+  /* Opaque material roles: never neutralize a palette's foundation or lift
+   * surfaces with text ink. Temporary highlights retain their own alpha. */
+  --qs-plane: var(--qs-bg);
+  --qs-sidebar: var(--qs-panel);
+  --qs-chrome: var(--qs-plane);
+  --qs-plane-soft: var(--qs-neutral);
+  --qs-plane-raised: var(--qs-raised);
+  --qs-rule: var(--qs-border);
+  --qs-rule-strong: color-mix(in srgb, var(--qs-fg) 24%, var(--qs-plane));
+  --qs-secondary: color-mix(in srgb, var(--qs-muted) 82%, var(--qs-fg));
+  --qs-disabled: color-mix(in srgb, var(--qs-muted) 70%, var(--qs-plane));
+  --qs-tint-color: var(--qs-accent);
+  --qs-tint: color-mix(in srgb, var(--qs-tint-color) calc(var(--qs-accent-strength) * 1%), transparent);
+  --qs-hover: color-mix(in srgb, var(--qs-fg) 4%, transparent);
+  --qs-selection: var(--qs-plane-raised);
+  --qs-text-selection: color-mix(in srgb, var(--qs-accent) 28%, transparent);
+  --qs-focus: color-mix(in srgb, var(--qs-link) 85%, var(--qs-fg));
+  --qs-indicator: var(--qs-accent);
+  --qs-icon-active: var(--qs-link);
+  --qs-link-hover: color-mix(in srgb, var(--qs-link) 70%, var(--qs-fg));
+  --qs-action-hover: color-mix(in srgb, var(--qs-action) 96%, var(--qs-on-action));
+  --qs-tag-ink: var(--qs-secondary);
+  --qs-search-ink: var(--qs-fg);
+  --qs-search-bg: var(--qs-selection);
+  --qs-callout-note: var(--color-blue);
+}
+
+/* 02 · Palettes. Sumi Ink is the dark fallback; Sumi Light is the light
+ * fallback. Retired/unknown saved classes need no migration or preference reset.
+ * Mode guards keep dark selections readable when Appearance is Light. */
+body.theme-dark {
+  color-scheme: dark;
+  --qs-neutral: #1B1B1B;
+  --qs-bg: #181818;
+  --qs-panel: #141414;
+  --qs-raised: #202020;
+  --qs-border: #333333;
+  --qs-secondary: #D0D0D0;
+  --qs-muted: #AAAAAA;
+  --qs-fg: #E5E5E5;
+  --qs-accent: #D0D0D0;
+  --qs-accent-secondary: #E5E5E5;
+  --qs-accent-deep: #888888;
+  --qs-link: #D0D0D0;
+  --qs-action: #D0D0D0;
+  --qs-on-action: #181818;
+  --accent-h: 0;
+  --accent-s: 0%;
+  --accent-l: 81.568627%;
+  --qs-signal-red: #D28D84;
+  --qs-signal-orange: #CBA67D;
+  --qs-signal-yellow: #C8BB85;
+  --qs-signal-green: #A0B89A;
+  --qs-signal-cyan: #89B9B4;
+  --qs-signal-blue: #98AEC6;
+  --qs-signal-purple: #B6A1C5;
+  --qs-signal-pink: #C8A0B3;
+}
+
+body.theme-dark.qs-vermilion {
+  /* Neutral ink foundations; accent pigments never tint structural planes. */
+  --qs-bg: #181818;
+  --qs-neutral: #1B1B1B;
+  --qs-panel: #141414;
+  --qs-raised: #202020;
+  --qs-chrome: #0B0909;
+  --qs-border: #333333;
+  --qs-rule-strong: #454545;
+  --qs-fg: #F8F8F8;
+  --qs-secondary: #D0D0D0;
+  --qs-muted: #AAAAAA;
+  --qs-hover: #242424;
+  --qs-selection: #2C2C2C;
+  --qs-text-selection: #454545;
+  /* Exact family: detail / action / action hover / small search-match fill. */
+  --qs-accent: #B65B4A;
+  --qs-accent-secondary: #A34138;
+  --qs-accent-tertiary: #9E2F26;
+  --qs-accent-deep: #7D1F23;
+  /* Small link labels need a paper lift; raw detail red is only 3.56:1 on #202020. */
+  --qs-link: color-mix(in srgb, var(--qs-accent) 65%, var(--qs-fg));
+  --qs-link-hover: color-mix(in srgb, var(--qs-accent) 45%, var(--qs-fg));
+  --qs-action: var(--qs-accent-secondary);
+  --qs-action-hover: var(--qs-accent-tertiary);
+  --qs-on-action: var(--qs-fg);
+  --qs-focus: var(--qs-accent);
+  --qs-indicator: var(--qs-accent);
+  --qs-icon-active: var(--qs-link);
+  --qs-tag-ink: var(--qs-secondary);
+  --qs-tint: #2C2C2C;
+  --qs-search-bg: var(--qs-accent-deep);
+  --qs-search-ink: var(--qs-fg);
+  --qs-callout-note: var(--qs-secondary);
+  --background-secondary-alt: var(--qs-panel);
+  --background-modifier-cover: #090909;
+  --background-modifier-form-field: var(--qs-plane-raised);
+  --background-modifier-form-field-hover: var(--qs-hover);
+  --modal-background: var(--menu-background);
+  --modal-sidebar-background: var(--qs-chrome);
+  --settings-background: var(--menu-background);
+  --prompt-background: var(--menu-background);
+  --menu-background: #111111;
+  --suggestion-background: var(--menu-background);
+  --tab-container-background: var(--qs-panel);
+  --tab-background-active: transparent;
+  --file-header-background: var(--qs-panel);
+  --file-header-background-focused: var(--qs-panel);
+  --scrollbar-thumb-bg: #666666;
+  --scrollbar-active-thumb-bg: var(--qs-muted);
+  --text-highlight-bg-rgb: 44, 44, 44;
+  --table-selection: var(--qs-selection);
+  --code-normal: var(--qs-fg);
+
+  --callout-info: var(--qs-secondary);
+  --callout-todo: var(--qs-secondary);
+  --callout-summary: var(--qs-secondary);
+  --callout-tip: var(--qs-secondary);
+  --callout-important: var(--qs-link);
+  --callout-example: var(--qs-secondary);
+  --callout-question: var(--qs-secondary);
+  --callout-quote: var(--qs-secondary);
+  /* Preserve semantic warnings/success and intentionally color-assigned cards. */
+  --qs-signal-red: color-mix(in srgb, var(--qs-accent) 62%, var(--qs-fg));
+  --qs-signal-orange: #D4A079;
+  --qs-signal-yellow: #CDB282;
+  --qs-signal-green: #A7B58F;
+  --qs-signal-cyan: #91B3AB;
+  --qs-signal-blue: #9AAAC0;
+  --qs-signal-purple: #BB9AB6;
+  --qs-signal-pink: #CB99A0;
+  --accent-h: 9.444444;
+  --accent-s: 42.519685%;
+  --accent-l: 50.196078%;
+  --color-accent-1: var(--qs-accent);
+  --color-accent-2: var(--qs-link);
+  --color-accent-hsl: 9.444444, 42.519685%, 50.196078%;
+  --interactive-accent-hsl: 5.046729, 48.858447%, 42.941176%;
+}
+
+/* Floating content must inherit the floating plane, including nested previews. */
+body.theme-dark.qs-vermilion :is(.popover, .hover-popover, .cm-tooltip) {
+  --background-primary: var(--menu-background);
+  background-color: var(--menu-background);
+}
+
+/* Original Sumi Negative 1.3.0 pigments, on the current shared components. */
+body.theme-dark.qs-sumi-negative {
+  color-scheme: dark;
+
+  --qs-neutral: #131212;
+  --qs-bg: #131212;
+  --qs-panel: #191717;
+  --qs-raised: #211E1E;
+  --qs-border: #373131;
+
+  --qs-fg: #E3CFC8;
+  --qs-secondary: #C8B9B5;
+  --qs-muted: #A99B98;
+
+  --qs-plane: var(--qs-bg);
+  --qs-sidebar: var(--qs-panel);
+  --qs-plane-soft: var(--qs-panel);
+  --qs-plane-raised: var(--qs-raised);
+  --qs-rule: var(--qs-border);
+
+  --qs-hover: #2A2626;
+  --qs-selection: #2A2626;
+  --qs-text-selection: #2A2626;
+
+  --qs-accent: #D4ADA3;
+  --qs-accent-secondary: #E1BFB6;
+  --qs-accent-deep: #A78279;
+
+  --qs-link: var(--qs-accent);
+  --qs-link-hover: var(--qs-accent-secondary);
+
+  --qs-action: var(--qs-accent);
+  --qs-action-hover: var(--qs-accent-secondary);
+  --qs-on-action: #131212;
+
+  --qs-focus: var(--qs-accent-secondary);
+  --qs-indicator: var(--qs-accent);
+  --qs-icon-active: var(--qs-accent);
+  --qs-callout-note: var(--qs-secondary);
+
+  --qs-signal-red: #D5A59B;
+  --qs-signal-orange: #CEB7AA;
+  --qs-signal-yellow: #D6C7BC;
+  --qs-signal-green: #C4BCB7;
+  --qs-signal-cyan: #BDB6B4;
+  --qs-signal-blue: #C5BEBB;
+  --qs-signal-purple: #D1BDB6;
+  --qs-signal-pink: #D4B9B1;
+
+  --accent-h: 12;
+  --accent-s: 36%;
+  --accent-l: 74%;
+}
+
+/* Palette defaults: native Appearance overrides and Style Settings font
+ * choices still win. Removing either palette class restores the shared fonts.
+ * CJK/Unicode glyphs fall through to local fonts; no font assets are bundled. */
+body:where(.theme-dark.qs-sumi-silk, .theme-dark.qs-sumi-negative) {
+  --qs-font-interface: "Maple Mono NF", ui-monospace, "Noto Sans Mono CJK TC", "Noto Sans Mono CJK JP", "PingFang TC", "Hiragino Sans", "Microsoft JhengHei", monospace;
+  --qs-font-body: "Maple Mono NF", ui-monospace, "Noto Sans Mono CJK TC", "Noto Sans Mono CJK JP", "PingFang TC", "Hiragino Sans", "Microsoft JhengHei", monospace;
+  --qs-font-mono: "Maple Mono NF", ui-monospace, "Noto Sans Mono CJK TC", "Noto Sans Mono CJK JP", "PingFang TC", "Hiragino Sans", "Microsoft JhengHei", monospace;
+}
+
+/* 03 · Semantic contract. Shared components consume roles, not pigment hexes.
+ * Accent intensity never tints chrome; selected rows retain neutral surfaces.
+ */
+body:is(.theme-dark, .theme-light) {
+  --color-base-00: var(--qs-plane);
+  --color-base-05: var(--qs-plane-soft);
+  --color-base-10: var(--qs-plane-soft);
+  --color-base-20: var(--qs-plane-raised);
+  --color-base-25: var(--qs-rule);
+  --color-base-30: var(--qs-rule);
+  --color-base-35: var(--qs-rule-strong);
+  --color-base-40: color-mix(in srgb, var(--qs-rule-strong) 55%, var(--qs-muted));
+  --color-base-50: var(--qs-disabled);
+  --color-base-60: var(--qs-muted);
+  --color-base-70: color-mix(in srgb, var(--qs-fg) 65%, var(--qs-muted));
+  --color-base-100: var(--qs-fg);
+  --background-primary: var(--qs-plane);
+  --background-primary-alt: var(--qs-plane-soft);
+  --background-secondary: var(--qs-sidebar);
+  --background-secondary-alt: var(--qs-sidebar);
+  --background-modifier-hover: var(--qs-hover);
+  --background-modifier-active-hover: var(--qs-selection);
+  --background-modifier-border: var(--qs-rule);
+  --background-modifier-border-hover: var(--qs-rule-strong);
+  --background-modifier-border-focus: var(--qs-focus);
+  --background-modifier-form-field: var(--qs-plane-soft);
+  --background-modifier-message: var(--qs-plane-raised);
+  --background-modifier-error: color-mix(in srgb, var(--color-red) 14%, transparent);
+  --background-modifier-error-hover: color-mix(in srgb, var(--color-red) 22%, transparent);
+  --background-modifier-success: color-mix(in srgb, var(--color-green) 14%, transparent);
+  --background-modifier-cover: color-mix(in srgb, var(--qs-plane) 72%, transparent);
+  --text-normal: var(--qs-fg);
+  --text-muted: var(--qs-secondary);
+  --text-faint: var(--qs-muted);
+  --text-on-accent: var(--qs-on-action);
+  /* Native saved accents may point inline --text-on-accent at this alias.
+   * Both paths must use the ink paired with our curated action fill. */
+  --text-on-accent-inverted: var(--qs-on-action);
+  --text-accent: var(--qs-link);
+  --text-accent-hover: var(--qs-link-hover);
+  --text-selection: var(--qs-text-selection);
+  --text-highlight-bg: var(--qs-tint);
+  --text-error: var(--color-red);
+  --text-warning: var(--color-orange);
+  --text-success: var(--color-green);
+  --caret-color: var(--qs-link);
+  --color-accent: var(--qs-accent);
+  --color-accent-1: color-mix(in srgb, var(--qs-accent) 86%, var(--qs-fg));
+  --color-accent-2: color-mix(in srgb, var(--qs-accent) 72%, var(--qs-fg));
+  --interactive-normal: var(--qs-plane-soft);
+  --interactive-hover: var(--qs-plane-raised);
+  --interactive-accent: var(--qs-action);
+  --interactive-accent-hover: var(--qs-action-hover);
+  --color-red: color-mix(in srgb, var(--qs-signal-red) 92%, var(--qs-fg));
+  --color-orange: color-mix(in srgb, var(--qs-signal-orange) 92%, var(--qs-fg));
+  --color-yellow: color-mix(in srgb, var(--qs-signal-yellow) 92%, var(--qs-fg));
+  --color-green: color-mix(in srgb, var(--qs-signal-green) 92%, var(--qs-fg));
+  --color-cyan: color-mix(in srgb, var(--qs-signal-cyan) 92%, var(--qs-fg));
+  --color-blue: color-mix(in srgb, var(--qs-signal-blue) 92%, var(--qs-fg));
+  --color-purple: color-mix(in srgb, var(--qs-signal-purple) 92%, var(--qs-fg));
+  --color-pink: color-mix(in srgb, var(--qs-signal-pink) 92%, var(--qs-fg));
+  --callout-default: var(--qs-callout-note);
+  --divider-color: var(--qs-rule);
+  --divider-color-hover: var(--qs-muted);
+  --workspace-background-translucent: var(--qs-plane);
+  --titlebar-background: var(--qs-chrome);
+  --titlebar-background-focused: var(--qs-chrome);
+  --titlebar-text-color: var(--qs-muted);
+  --titlebar-text-color-focused: var(--qs-fg);
+  --file-header-background: var(--qs-plane);
+  --file-header-background-focused: var(--qs-plane);
+  --file-header-border: none;
+  --tab-background-active: transparent;
+  --tab-text-color: var(--qs-muted);
+  --tab-text-color-active: var(--qs-fg);
+  --tab-text-color-focused: var(--qs-muted);
+  --tab-text-color-focused-active: var(--qs-fg);
+  --tab-text-color-focused-active-current: var(--qs-fg);
+  --tab-container-background: var(--qs-chrome);
+  --tab-divider-color: var(--qs-rule);
+  --tab-outline-color: transparent;
+  --ribbon-background: var(--qs-chrome);
+  --ribbon-background-collapsed: var(--qs-chrome);
+  --status-bar-background: var(--qs-chrome);
+  --status-bar-text-color: var(--qs-muted);
+  --status-bar-border-color: var(--qs-rule);
+  --icon-color: var(--qs-muted);
+  --icon-color-hover: var(--qs-fg);
+  --icon-color-active: var(--qs-icon-active);
+  --icon-color-focused: var(--qs-fg);
+  --nav-item-color: var(--qs-muted);
+  --nav-item-color-hover: var(--qs-fg);
+  --nav-item-color-active: var(--qs-fg);
+  --nav-item-color-selected: var(--qs-fg);
+  --nav-item-background-hover: var(--qs-hover);
+  --nav-item-background-active: transparent;
+  --nav-item-background-selected: var(--qs-selection);
+  --nav-collapse-icon-color: var(--qs-muted);
+  --nav-collapse-icon-color-collapsed: var(--qs-muted);
+  --nav-heading-color: var(--qs-fg);
+  --nav-heading-color-hover: var(--qs-fg);
+  --nav-indentation-guide-color: var(--qs-rule);
+  --indentation-guide-color: var(--qs-rule);
+  --indentation-guide-color-active: var(--qs-muted);
+  --search-result-background: transparent;
+  --search-clear-button-color: var(--qs-muted);
+  --search-icon-color: var(--qs-muted);
+  --scrollbar-bg: transparent;
+  --scrollbar-thumb-bg: color-mix(in srgb, var(--qs-muted) 30%, transparent);
+  --scrollbar-active-thumb-bg: color-mix(in srgb, var(--qs-muted) 75%, transparent);
+  --modal-background: var(--qs-plane);
+  --modal-border-color: var(--qs-rule-strong);
+  --menu-background: var(--qs-plane-raised);
+  --menu-border-color: var(--qs-rule-strong);
+  --prompt-background: var(--qs-plane);
+  --prompt-border-color: var(--qs-rule);
+  --background-modifier-box-shadow: transparent;
+  --input-shadow: none;
+  --input-shadow-hover: none;
+  --shadow-xs: none;
+  --shadow-s: none;
+  --shadow-l: none;
+  --input-focus-border-color: var(--qs-focus);
+  --input-border-width-focus: 1px;
+  --search-input-radius: var(--qs-radius);
+  --toggle-width: 34px;
+  --toggle-radius: var(--qs-radius);
+  --toggle-thumb-radius: 1px;
+  --slider-thumb-width: 12px;
+  --slider-thumb-width-active: 12px;
+  --tab-radius: 0px;
+  --checkbox-color: var(--qs-action);
+  --checkbox-color-hover: var(--interactive-accent-hover);
+  --checkbox-border-color: var(--qs-muted);
+  --checkbox-border-color-hover: var(--qs-link);
+  --checkbox-marker-color: var(--qs-on-action);
+  --checklist-done-color: var(--qs-muted);
+  --checklist-done-decoration: line-through;
+  --toggle-thumb-color: var(--qs-fg);
+  --slider-thumb-border-color: var(--qs-muted);
+  --slider-track-background: var(--qs-rule-strong);
+  --canvas-color: var(--qs-muted);
+}
+
+body.qs-high-contrast:is(.theme-dark, .theme-light) {
+  --text-muted: color-mix(in srgb, var(--qs-muted) 55%, var(--qs-fg));
+  --text-faint: var(--text-muted);
+  --qs-rule: color-mix(in srgb, var(--qs-fg) 20%, var(--qs-plane));
+  --qs-rule-strong: color-mix(in srgb, var(--qs-fg) 32%, var(--qs-plane));
+  --nav-item-color: var(--text-muted);
+  --icon-color: var(--text-muted);
+  --status-bar-text-color: var(--text-muted);
+  --tab-text-color: var(--text-muted);
+}
+
+body.qs-comfortable {
+  --nav-item-padding: 9px 10px 9px 20px;
+  --nav-item-parent-padding: 10px 10px 10px 20px;
+}
+
+/* 04 · Workspace. Shared baseline, with an inset rule under the active tab.
+ * Keep native drag regions, window-button spacing, and stacked-tab geometry.
+ */
+.workspace-tabs:not(.mod-stacked) .workspace-tab-header-container {
+  border-bottom: 0;
+  box-shadow: inset 0 -1px var(--qs-rule);
+}
+
+/* Extend the same baseline through the native corner above the ribbon. */
+.workspace-ribbon.mod-left::before {
+  border-bottom: 1px solid var(--qs-rule);
+  border-inline-end: 1px solid var(--qs-rule);
+}
+
+.workspace-tabs:not(.mod-stacked) .workspace-tab-header-container-inner {
+  margin-block: 0;
+  padding-block: 0;
+}
+
+.workspace-tabs:not(.mod-stacked) .workspace-tab-header-container .workspace-tab-header {
+  padding-block: 0;
+}
+
+.workspace-tabs:not(.mod-stacked) .workspace-tab-header-container .workspace-tab-header.is-active {
+  background: transparent;
+  box-shadow: inset 0 -1px var(--qs-indicator);
+}
+
+.workspace-tab-header.is-active .workspace-tab-header-inner-title {
+  font-weight: 500;
+}
+
+.workspace-tabs:not(.mod-stacked) .workspace-tab-header::before,
+.workspace-tabs:not(.mod-stacked) .workspace-tab-header::after {
+  display: none;
+}
+
+.workspace-tab-header-inner {
+  border-radius: 0;
+}
+
+.workspace-split.mod-root .workspace-leaf-content {
+  border-radius: 0;
+}
+
+.workspace-tab-header-inner-title {
+  letter-spacing: 0.005em;
+}
+
+@media (hover: hover) {
+  .workspace-tabs:not(.mod-stacked) .workspace-tab-header:not(.is-active):hover .workspace-tab-header-inner {
+    background: transparent;
+    color: var(--text-normal);
+  }
+}
+
+.view-header-title {
+  font-size: var(--font-ui-small);
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  color: var(--text-muted);
+}
+
+.view-header-breadcrumb {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.workspace-ribbon .side-dock-ribbon-action {
+  border-radius: var(--qs-radius);
+}
+
+.status-bar-item {
+  padding: 2px 6px;
+  letter-spacing: 0.015em;
+}
+
+/* The status bar participates in this theme's column flow. Reserve its actual
+ * height so short windows do not squeeze footer controls into the clipped row.
+ */
+.status-bar {
+  flex: 0 0 auto;
+}
+
+/* Native desktop profile DOM: switcher (icon + name), then help/settings actions.
+ * Only text may shrink/ellipsize. Do not alter sidebar overflow, animation,
+ * positioning, display, or native inline dimensions during collapse/resize.
+ */
+body:not(.is-mobile) .workspace-sidedock-vault-profile {
+  min-height: 44px;
+  min-width: 0;
+}
+
+body:not(.is-mobile) .workspace-split.mod-sidedock > .workspace-sidedock-vault-profile {
+  flex: 0 0 auto;
+  height: auto;
+}
+
+.workspace-sidedock-vault-profile .workspace-drawer-vault-switcher {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.workspace-sidedock-vault-profile .workspace-drawer-vault-name {
+  min-width: 0;
+}
+
+.workspace-sidedock-vault-profile .workspace-drawer-vault-actions,
+.workspace-sidedock-vault-profile .workspace-drawer-vault-switcher-icon,
+.workspace-sidedock-vault-profile .workspace-drawer-vault-actions .clickable-icon {
+  flex: 0 0 auto;
+}
+
+/* 05 · Navigation. An editorial index: folder rhythm, open rows, ink marker.
+ * Preserve rename, multi-selection, drag, collapse, and keyboard-focus states.
+ */
+.nav-files-container {
+  padding: 14px 16px 28px;
+}
+
+.nav-file-title.is-active {
+  position: relative;
+}
+
+.nav-file-title.is-active:not(.is-being-renamed)::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 7px;
+  inset-block-start: calc(50% - 5px);
+  width: 1px;
+  height: 10px;
+  background: var(--qs-indicator);
+  pointer-events: none;
+}
+
+.nav-folder-title {
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.025em;
+}
+
+.nav-file-title {
+  letter-spacing: 0.005em;
+  line-height: 1.5;
+}
+
+.nav-folder.mod-root > .nav-folder-children > .nav-folder {
+  margin-block-start: 12px;
+}
+
+.nav-folder.mod-root > .nav-folder-children > .nav-folder:first-child {
+  margin-block-start: 2px;
+}
+
+.nav-folder-title .collapse-icon {
+  --icon-size: 12px;
+}
+
+.nav-file-tag {
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  font-weight: 400;
+}
+
+.tree-item-self .tree-item-flair {
+  color: var(--text-muted);
+  font-family: var(--font-monospace);
+  font-size: 11px;
+}
+
+.search-result-file-title {
+  border-bottom: none;
+  font-size: var(--font-ui-small);
+  font-weight: 500;
+}
+
+.search-result-file-match {
+  padding: 6px 10px;
+}
+
+.search-result-file-matched-text {
+  color: var(--qs-search-ink);
+  background: var(--qs-search-bg);
+}
+
+/* Search owns a single input-bottom focus line. Keep native icon/decorator
+ * geometry and query-dependent trailing padding; scope out PDF/plugin searches.
+ */
+.workspace-leaf-content[data-type="search"] .search-input-container {
+  --input-border-width-focus: 0px;
+  --background-modifier-form-field: transparent;
+  --background-modifier-form-field-hover: var(--qs-hover);
+  min-width: 0;
+}
+
+.workspace-leaf-content[data-type="search"] .search-input-container input[type="search"] {
+  border: 0;
+  border-bottom: 1px solid var(--qs-rule);
+  border-radius: 0;
+}
+
+.workspace-leaf-content[data-type="search"] .search-input-container input[type="search"]:focus {
+  border-bottom-color: var(--qs-focus);
+}
+
+:is(.backlink-pane, .outgoing-link-pane, .outline, .bookmarks-view) .tree-item-self {
+  border-radius: 0;
+}
+
+/* 06 · Editorial typography. One ink color, generous rhythm, local fonts. */
+body {
+  --h1-size: calc(1.9em * var(--qs-heading-scale));
+  --h2-size: calc(1.42em * var(--qs-heading-scale));
+  --h3-size: calc(1.2em * var(--qs-heading-scale));
+  --h4-size: calc(1.1em * var(--qs-heading-scale));
+  --h5-size: calc(1em * var(--qs-heading-scale));
+  --h6-size: calc(0.95em * var(--qs-heading-scale));
+  --h1-font: var(--font-interface);
+  --h2-font: var(--font-interface);
+  --h3-font: var(--font-interface);
+  --h4-font: var(--font-interface);
+  --h5-font: var(--font-interface);
+  --h6-font: var(--font-interface);
+  --h1-weight: 500;
+  --h2-weight: 500;
+  --h3-weight: 500;
+  --h4-weight: 500;
+  --h5-weight: 500;
+  --h6-weight: 500;
+  --h1-line-height: 1.25;
+  --h2-line-height: 1.3;
+  --h3-line-height: 1.4;
+  --h4-line-height: 1.4;
+  --h5-line-height: 1.5;
+  --h6-line-height: 1.5;
+  --h1-letter-spacing: -0.025em;
+  --h2-letter-spacing: -0.025em;
+  --h3-letter-spacing: -0.01em;
+  --h4-letter-spacing: -0.01em;
+  --h5-letter-spacing: -0.01em;
+  --h6-letter-spacing: 0em;
+  --h1-color: var(--text-normal);
+  --h2-color: var(--text-normal);
+  --h3-color: var(--text-normal);
+  --h4-color: var(--text-normal);
+  --h5-color: var(--text-normal);
+  --h6-color: var(--text-muted);
+  --heading-formatting: var(--text-muted);
+  --inline-title-font: var(--font-interface);
+  --inline-title-size: calc(2.1em * var(--qs-heading-scale));
+  --inline-title-weight: 500;
+  --inline-title-line-height: 1.2;
+  --inline-title-color: var(--text-normal);
+  --inline-title-margin-bottom: 1.4em;
+  --bold-weight: 600;
+  --bold-color: var(--text-normal);
+  --italic-color: var(--text-normal);
+}
+
+.inline-title,
+.markdown-rendered :is(h1, h2),
+.markdown-source-view .cm-line:is(.HyperMD-header-1, .HyperMD-header-2) {
+  letter-spacing: -0.025em;
+}
+
+.markdown-rendered :is(h3, h4, h5, h6) {
+  letter-spacing: -0.01em;
+}
+
+.markdown-rendered p {
+  text-wrap: pretty;
+}
+
+.markdown-rendered :is(h1, h2, h3, h4, h5, h6) {
+  text-wrap: balance;
+}
+
+/* No text transform: mixed Latin/CJK headings retain their intended case. */
+.markdown-source-view.mod-cm6 .cm-scroller {
+  font-kerning: normal;
+}
+
+/* 07 · Content. Hooks cover reading mode and CodeMirror Live Preview/source. */
+body {
+  --link-color: var(--qs-link);
+  --link-color-hover: var(--text-accent-hover);
+  --link-external-color: var(--qs-link);
+  --link-external-color-hover: var(--text-accent-hover);
+  --link-decoration: underline;
+  --link-decoration-hover: underline;
+  --link-external-decoration: underline;
+  --link-external-decoration-hover: underline;
+  --link-unresolved-color: var(--text-muted);
+  --link-unresolved-opacity: 1;
+  --link-unresolved-decoration-style: dashed;
+  --link-unresolved-decoration-color: var(--text-muted);
+  --tag-color: var(--qs-tag-ink);
+  --tag-color-hover: var(--text-normal);
+  --tag-background: transparent;
+  --tag-background-hover: var(--qs-hover);
+  --tag-radius: var(--qs-radius);
+  --tag-border-width: 0px;
+  --tag-padding-x: 0em;
+  --tag-padding-y: 0em;
+  --tag-size: 0.8em;
+  --list-spacing: 0.22em;
+  --list-indent: 1.8em;
+  --list-marker-color: var(--text-muted);
+  --list-marker-color-hover: var(--text-accent);
+  --list-marker-color-collapsed: var(--text-accent);
+  --blockquote-border-thickness: 1px;
+  --blockquote-border-color: var(--qs-rule-strong);
+  --blockquote-color: var(--text-normal);
+  --blockquote-background-color: transparent;
+  --hr-color: var(--qs-rule);
+  --hr-thickness: 1px;
+  --callout-border-width: 0px;
+  --callout-border-opacity: 0.55;
+  --callout-padding: 6px 0 6px 18px;
+  --callout-radius: 0px;
+  --callout-blend-mode: normal;
+  --callout-title-weight: 500;
+  --callout-title-size: 0.9em;
+  --callout-content-padding: 4px 0 0;
+  --table-border-width: 1px;
+  --table-border-color: var(--qs-rule);
+  --table-header-border-color: var(--qs-rule-strong);
+  --table-header-border-width: 1px;
+  --table-header-background: transparent;
+  --table-header-background-hover: var(--qs-hover);
+  --table-header-color: var(--text-normal);
+  --table-header-weight: 500;
+  --table-header-font: var(--font-interface);
+  --table-text-size: 0.9em;
+  --table-column-max-width: none;
+  --table-column-min-width: 8ch;
+  --table-row-background-hover: var(--qs-hover);
+  --table-row-alt-background: transparent;
+  --code-background: var(--qs-plane-soft);
+  --code-normal: var(--text-normal);
+  --code-size: 0.85em;
+  --code-radius: var(--qs-radius);
+  --code-white-space: pre;
+  --code-border-width: 0px;
+  --code-border-color: var(--qs-rule);
+
+  --embed-background: transparent;
+  --embed-border-start: 1px solid var(--qs-rule);
+  --embed-border-end: none;
+  --embed-border-top: none;
+  --embed-border-bottom: none;
+  --embed-padding: 0 0 0 20px;
+  --embed-font-style: normal;
+  --embed-block-shadow-hover: none;
+  --metadata-background: transparent;
+  --metadata-border-color: var(--qs-rule);
+  --metadata-border-width: 0;
+  --metadata-border-radius: 0px;
+  --metadata-padding: 0 0 18px;
+  --metadata-gap: 4px;
+  --metadata-label-font-size: var(--font-ui-smaller);
+  --metadata-label-font-weight: 400;
+  --metadata-label-text-color: var(--text-muted);
+  --metadata-label-width: 9em;
+  --metadata-input-font-size: var(--font-ui-small);
+  --metadata-input-text-color: var(--text-normal);
+  --metadata-input-background: transparent;
+  --metadata-input-background-hover: var(--qs-hover);
+  --metadata-input-background-active: var(--qs-hover);
+  --metadata-property-radius: var(--qs-radius);
+  --metadata-property-radius-hover: var(--qs-radius);
+  --metadata-property-radius-focus: var(--qs-radius);
+  --metadata-property-box-shadow-hover: none;
+  --metadata-property-box-shadow-focus: inset 0 -1px var(--qs-focus);
+  --metadata-property-padding: 4px 0;
+}
+
+.markdown-rendered :is(a, .internal-link),
+.markdown-source-view .cm-link {
+  text-underline-offset: 0.18em;
+}
+
+.markdown-rendered blockquote {
+  padding: 8px 18px;
+  margin-inline: 0;
+}
+
+.markdown-rendered blockquote > :first-child {
+  margin-top: 0;
+}
+
+.markdown-rendered blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+.callout {
+  border-inline-start-width: 1px;
+  background: transparent;
+}
+
+.callout-title {
+  font-family: var(--font-interface);
+}
+
+.callout-content {
+  color: var(--text-normal);
+}
+
+.markdown-rendered :is(th, td) {
+  border-inline-width: 0;
+  padding: 9px 13px;
+}
+
+.markdown-source-view.mod-cm6 .cm-table-widget .table-cell-wrapper {
+  padding: 9px 13px;
+}
+
+.markdown-rendered th {
+  font-family: var(--font-interface);
+  font-size: 0.9em;
+  letter-spacing: 0.015em;
+}
+
+.markdown-rendered :not(pre) > code,
+.markdown-source-view .cm-inline-code {
+  color: var(--text-normal);
+  border-radius: var(--qs-radius);
+}
+
+.markdown-rendered pre {
+  padding: 18px 20px;
+}
+
+.markdown-rendered pre code {
+  font-variant-ligatures: none;
+}
+
+/* Native Obsidian 1.15 token roles/pigments, isolated to fenced code so palette
+ * signals, Markdown prose and inline code retain their existing colors.
+ * HyperMD-codeblock covers both Live Preview and Source mode. Native Prism
+ * and CodeMirror token selectors consume these supported --code-* hooks.
+ */
+@media screen {
+  body.theme-dark :is(.markdown-rendered pre, .markdown-source-view .HyperMD-codeblock) {
+    --code-comment: var(--text-faint);
+    --code-function: #E0DE71;
+    --code-important: #E9973F;
+    --code-keyword: #FA99CD;
+    --code-operator: #FB464C;
+    --code-property: #53DFDD;
+    --code-punctuation: var(--text-muted);
+    --code-string: #44CF6E;
+    --code-tag: #FB464C;
+    --code-value: #A882FF;
+  }
+
+  /* Native light hues darkened only as needed for AA on the existing #E5E5E5
+   * code surface. Do not change the light palette's grayscale UI signals. */
+  body.theme-light :is(.markdown-rendered pre, .markdown-source-view .HyperMD-codeblock) {
+    --code-comment: var(--text-faint);
+    --code-function: #806200;
+    --code-important: #A25000;
+    --code-keyword: #B73171;
+    --code-operator: #C3293B;
+    --code-property: #007372;
+    --code-punctuation: var(--text-muted);
+    --code-string: #057732;
+    --code-tag: #C3293B;
+    --code-value: #6E4BDA;
+  }
+}
+
+.markdown-rendered .copy-code-button {
+  color: var(--text-muted);
+  border-radius: var(--qs-radius);
+  font-family: var(--font-interface);
+}
+
+.markdown-rendered .footnotes {
+  border-top: 1px solid var(--qs-rule);
+  margin-top: 3em;
+  padding-top: 0.75em;
+  color: var(--text-muted);
+  font-size: 0.85em;
+}
+
+.markdown-rendered :is(.math, .MathJax),
+.markdown-source-view .math {
+  color: var(--text-normal);
+}
+
+.markdown-rendered img,
+.image-embed img {
+  border-radius: var(--qs-radius);
+}
+
+.metadata-container {
+  font-family: var(--font-interface);
+  margin-bottom: 28px;
+}
+
+.metadata-properties-heading {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  letter-spacing: 0.025em;
+}
+
+/* 08 · Controls. One focus owner per control. Text fields retain native focus
+ * borders/shadows; native composites (properties, toggles, ranges) own their
+ * focus. Do not add an outer frame to their nested input elements.
+ */
+body {
+  --flair-background: transparent;
+  --flair-color: var(--text-muted);
+  --pill-color: var(--text-muted);
+  --pill-color-hover: var(--text-normal);
+  --pill-color-remove: var(--text-muted);
+  --pill-color-remove-hover: var(--color-red);
+  --pill-background: transparent;
+  --pill-background-hover: var(--qs-hover);
+  --pill-border-color: transparent;
+  --pill-border-color-hover: var(--qs-muted);
+  --pill-radius: var(--qs-radius);
+  --pill-border-width: 0px;
+}
+
+button:focus-visible,
+button.mod-cta:focus-visible,
+select:focus-visible,
+.dropdown:focus-visible,
+.combobox-button:focus-visible,
+.clickable-icon:focus-visible,
+.vertical-tab-nav-item:focus-visible {
+  outline: 1px solid var(--qs-focus);
+  outline-offset: -1px;
+  box-shadow: none;
+}
+
+:is(.workspace-tab-header, .tree-item-self:not(.has-focus), .menu-item,
+  .suggestion-item, .canvas-control-item, .view-action,
+  .workspace-drawer-vault-switcher):focus-visible {
+  outline: 1px solid var(--qs-focus);
+  outline-offset: -1px;
+}
+
+.markdown-rendered a:focus-visible {
+  outline: 1px solid var(--qs-focus);
+  outline-offset: 2px;
+}
+
+/* Inset focus must contrast with a filled action's own surface, not only the
+ * surrounding pane. Its readable label color already provides that contrast.
+ */
+button.mod-cta:focus-visible {
+  outline-color: currentColor;
+}
+
+/* Native warning buttons assume a solid error fill. Our error token is a tint
+ * for fields/callouts, so use error ink on the normal matte button surfaces.
+ */
+button.mod-warning,
+button.mod-destructive.mod-cta {
+  --text-color: var(--text-error);
+  background-color: var(--interactive-normal);
+}
+
+@media (hover: hover) {
+  button.mod-warning:hover,
+  button.mod-destructive.mod-cta:hover {
+    background-color: var(--interactive-hover);
+  }
+}
+
+.setting-item {
+  border-color: var(--background-modifier-border);
+  padding-block: 16px;
+}
+
+.checkbox-container.is-enabled {
+  --toggle-thumb-color: var(--qs-on-action);
+}
+
+.setting-item-name {
+  font-size: var(--font-ui-medium);
+  font-weight: 500;
+}
+
+.setting-item-description {
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.vertical-tab-header-group-title {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
+.vertical-tab-nav-item {
+  border-radius: var(--qs-radius);
+}
+
+.vertical-tab-nav-item.is-active {
+  background: transparent;
+  color: var(--text-normal);
+  box-shadow: inset 1px 0 var(--qs-indicator);
+  font-weight: 500;
+}
+
+.modal-title {
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.prompt {
+  /* Native prompt focus/hover uses background-secondary for the input border.
+   * Local transparent values remove that separator without affecting the app.
+   */
+  --background-secondary: transparent;
+  --background-modifier-form-field: transparent;
+  --background-modifier-form-field-hover: transparent;
+  --input-border-width-focus: 0px;
+}
+
+.prompt-input-container,
+.prompt > .prompt-instructions {
+  flex: 0 0 auto;
+}
+
+input.prompt-input {
+  padding: 14px 20px;
+  padding-inline-end: 48px;
+  border-bottom: 1px solid transparent;
+  font-size: var(--font-ui-medium);
+}
+
+input.prompt-input:focus {
+  box-shadow: inset 1px 0 var(--qs-focus);
+}
+
+.prompt-results {
+  padding: 6px 0;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Former 6px gutter + 14px row padding = the same 20px text inset.
+ * Reserve 1px for a straight edge marker, independent of row radius/shadow. */
+.prompt .suggestion-item {
+  padding-block: 10px;
+  padding-inline: 19px 20px;
+  border-inline-start: 1px solid transparent;
+  border-radius: 0;
+}
+
+.suggestion-item.is-selected,
+.menu-item.selected:not(.is-label):not(.is-disabled) {
+  background: var(--qs-selection);
+  color: var(--text-normal);
+  box-shadow: inset 1px 0 var(--qs-indicator);
+}
+
+.prompt .suggestion-item.is-selected {
+  background: transparent;
+  border-inline-start-color: var(--qs-indicator);
+  box-shadow: none;
+}
+
+.cm-tooltip.cm-completionInfo {
+  color: var(--text-normal);
+}
+
+.menu-item.is-disabled {
+  color: var(--qs-disabled);
+}
+
+.suggestion-hotkey {
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  font-family: var(--font-monospace);
+  font-size: 11px;
+}
+
+.prompt > .prompt-instructions {
+  border-top: 0;
+  color: var(--text-faint);
+  font-size: 11px;
+  padding: 12px 20px 16px;
+  justify-content: flex-start;
+  gap: 8px 16px;
+}
+
+.prompt .prompt-instruction-command {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.menu-item {
+  border-radius: var(--qs-radius);
+}
+
+.tooltip {
+  background: var(--qs-plane-raised);
+  color: var(--text-normal);
+  border: 1px solid var(--qs-rule);
+  border-radius: var(--qs-radius);
+  box-shadow: none;
+  font-size: var(--font-ui-smaller);
+}
+
+.tooltip .tooltip-arrow {
+  border-bottom-color: var(--qs-rule);
+}
+
+.notice {
+  background: var(--qs-plane-raised);
+  color: var(--text-normal);
+  border: none;
+  border-inline-start: 1px solid var(--qs-muted);
+  border-radius: var(--qs-radius);
+  box-shadow: none;
+}
+
+/* 09 · Graph & Canvas. Extended colors preserve meaning without neon. */
+body {
+  --graph-text: var(--text-muted);
+  --graph-line: var(--qs-rule);
+  --graph-node: var(--qs-muted);
+  --graph-node-unresolved: color-mix(in srgb, var(--qs-muted) 75%, var(--qs-plane));
+  --graph-node-focused: var(--qs-link);
+  --graph-node-tag: var(--qs-accent);
+  --graph-node-attachment: var(--color-base-70);
+  --graph-controls-width: 240px;
+  --canvas-background: var(--qs-plane);
+  --canvas-card-label-color: var(--text-muted);
+  --canvas-dot-pattern: color-mix(in srgb, var(--qs-rule) 50%, transparent);
+  --canvas-color-1: var(--color-red);
+  --canvas-color-2: var(--color-orange);
+  --canvas-color-3: var(--color-yellow);
+  --canvas-color-4: var(--color-green);
+  --canvas-color-5: var(--color-cyan);
+  --canvas-color-6: var(--color-purple);
+}
+
+.canvas-node-container {
+  border-radius: var(--qs-radius);
+  box-shadow: none;
+}
+
+.canvas-wrapper {
+  --shadow-stationary: none;
+  --shadow-drag: none;
+}
+
+.canvas-node-content {
+  background-color: var(--qs-plane-soft);
+  border-radius: var(--qs-radius);
+}
+
+.canvas-node.is-selected .canvas-node-container {
+  box-shadow: 0 0 0 1px var(--qs-focus);
+}
+
+.canvas-control-group {
+  background: var(--qs-plane);
+  border: 1px solid var(--qs-rule);
+  border-radius: var(--qs-radius);
+  box-shadow: none;
+}
+
+.graph-controls {
+  border: none;
+  border-radius: var(--qs-radius);
+  background: var(--qs-plane);
+}
+
+/* Sumi Ink foundation, also inherited by Sumi Silk.
+ * :where() keeps this guard at the shared contract's specificity, so
+ * the existing stronger-contrast preference and print overrides still work.
+ * Incompatible/retired selections in Dark mode use this exact ink foundation.
+ * Screen-only paint leaves the existing paper print palette intact.
+ */
+@media screen {
+  body.theme-dark:not(:where(.qs-vermilion, .qs-sumi-negative)) {
+    --qs-plane: #181818;
+    --qs-sidebar: #141414;
+    --qs-chrome: #111111;
+    --qs-rule-strong: #454545;
+    --qs-hover: #242424;
+    --qs-selection: #2C2C2C;
+    --qs-text-selection: #454545;
+    /* User-selected Dust / Alabaster / Snow establish the text hierarchy. */
+    --qs-disabled: #888888;
+    --qs-link-hover: #F8F8F8;
+    --qs-action-hover: #E5E5E5;
+    --qs-focus: #D0D0D0;
+    --qs-indicator: #D0D0D0;
+    --qs-icon-active: #D0D0D0;
+    --qs-tint-color: #D0D0D0;
+    --qs-tint: #2C2C2C;
+    --qs-tag-ink: #D0D0D0;
+    --qs-search-bg: #454545;
+    --qs-search-ink: #F8F8F8;
+    --qs-callout-note: #D0D0D0;
+
+    /* Solid structural planes and controls; no accent glaze or glass layers. */
+    --background-primary-alt: #1B1B1B;
+    --background-secondary-alt: #141414;
+    --background-modifier-cover: #090909;
+    --background-modifier-form-field-hover: #242424;
+    --interactive-normal: #202020;
+    --interactive-hover: #242424;
+    --tab-background-active: transparent;
+    --nav-item-color: #D0D0D0;
+    --icon-color: #D0D0D0;
+    --scrollbar-thumb-bg: #666666;
+    --scrollbar-active-thumb-bg: #AAAAAA;
+    --color-accent-1: #D0D0D0;
+    --color-accent-2: #E5E5E5;
+    /* Neutral aliases also isolate native HSL consumers from saved accents. */
+    --color-accent-hsl: 0, 0%, 81.568627%;
+    --interactive-accent-hsl: 0, 0%, 81.568627%;
+    --text-highlight-bg-rgb: 44, 44, 44;
+    --table-selection: #2C2C2C;
+
+    --background-modifier-form-field: #202020;
+    --tab-container-background: #141414;
+    --modal-background: #0B0909;
+    --modal-sidebar-background: #141414;
+    --settings-background: #0B0909;
+    --prompt-background: #0B0909;
+    --nav-item-background-active: #2C2C2C;
+    --qs-floating: #0B0909;
+    --menu-background: #0B0909;
+    --file-header-background: #141414;
+    --file-header-background-focused: #141414;
+    --h1-color: #F8F8F8;
+    --h2-color: #F8F8F8;
+    --h3-color: #F8F8F8;
+    --h4-color: #F8F8F8;
+    --h5-color: #F8F8F8;
+    --h6-color: #F8F8F8;
+    --inline-title-color: #F8F8F8;
+
+    /* Plain code keeps the reading ink; fenced syntax has its own native colors. */
+    --code-normal: #E5E5E5;
+
+    --callout-info: #D0D0D0;
+    --callout-todo: #D0D0D0;
+    --callout-tip: #D0D0D0;
+    --callout-summary: #D0D0D0;
+    --callout-important: #E5E5E5;
+    --callout-example: #D0D0D0;
+    --callout-question: #D0D0D0;
+    --callout-quote: #D0D0D0;
+    --canvas-dot-pattern: #242424;
+  }
+
+  /* Paint-only exceptions where the original component rules intentionally
+   * bypass native surface variables. Keep all existing geometry and markers. */
+  body.theme-dark:not(:where(.qs-vermilion, .qs-sumi-negative)) .workspace-leaf-content[data-type="search"] .search-input-container {
+    --background-modifier-form-field: var(--qs-plane-raised);
+    --background-modifier-form-field-hover: var(--qs-hover);
+  }
+
+  body.theme-dark:not(:where(.qs-vermilion, .qs-sumi-negative)) .vertical-tab-nav-item.is-active {
+    background: var(--qs-selection);
+  }
+
+  body.theme-dark:not(:where(.qs-vermilion, .qs-sumi-negative)) :is(.popover, .hover-popover, .suggestion-container, .cm-tooltip) {
+    --background-primary: var(--qs-floating);
+    background-color: var(--qs-floating);
+  }
+  /* Silk keeps the Sumi surfaces; ivory inks replace its neutral whites. */
+  body.theme-dark.qs-sumi-silk {
+    --qs-chrome: #141414;
+    --qs-fg: #DFCCC5;
+    --qs-secondary: #CAB7B0;
+    --qs-muted: #A4918A;
+    --qs-disabled: #826F68;
+    --qs-accent-deep: #826F68;
+    --qs-silk-strong: #F2DFD8;
+    --qs-silk-detail: #B5A29B;
+    --qs-accent: #CEBABA;
+    --qs-accent-secondary: #CEBABA;
+    --qs-link: #CEBABA;
+    --qs-link-hover: var(--qs-fg);
+    --qs-action-hover: var(--qs-fg);
+    --qs-action: #CEBABA;
+    --qs-focus: #CEBABA;
+    --qs-indicator: #CEBABA;
+    --qs-icon-active: #CEBABA;
+    --color-accent-1: #CEBABA;
+    --color-accent-2: var(--qs-fg);
+    --qs-tag-ink: var(--qs-secondary);
+    --qs-tint-color: var(--qs-fg);
+    --qs-search-ink: var(--qs-silk-strong);
+    --qs-callout-note: var(--qs-secondary);
+    --nav-item-color: var(--qs-secondary);
+    --icon-color: var(--qs-secondary);
+    --scrollbar-active-thumb-bg: var(--qs-muted);
+    --h1-color: var(--qs-silk-strong);
+    --h2-color: var(--qs-silk-strong);
+    --h3-color: var(--qs-silk-strong);
+    --h4-color: var(--qs-silk-strong);
+    --h5-color: var(--qs-silk-strong);
+    --h6-color: var(--qs-silk-strong);
+    --inline-title-color: var(--qs-silk-strong);
+    --code-normal: var(--qs-fg);
+
+    --callout-info: var(--qs-secondary);
+    --callout-todo: var(--qs-secondary);
+    --callout-tip: var(--qs-secondary);
+    --callout-summary: var(--qs-secondary);
+    --callout-important: var(--qs-fg);
+    --callout-example: var(--qs-secondary);
+    --callout-question: var(--qs-secondary);
+    --callout-quote: var(--qs-secondary);
+    --accent-h: 0.000000;
+    --accent-s: 16.949153%;
+    --accent-l: 76.862745%;
+    --color-accent-hsl: 0.000000, 16.949153%, 76.862745%;
+    --interactive-accent-hsl: 0.000000, 16.949153%, 76.862745%;
+  }
+
+  :is(body.theme-light, body.theme-dark.qs-sumi-negative) .workspace-leaf-content[data-type="search"] .search-input-container {
+    --background-modifier-form-field: var(--qs-plane-raised);
+    --background-modifier-form-field-hover: var(--qs-hover);
+  }
+
+  :is(body.theme-light, body.theme-dark.qs-sumi-negative) :is(.popover, .hover-popover, .suggestion-container, .cm-tooltip) {
+    --background-primary: var(--menu-background);
+    background-color: var(--menu-background);
+  }
+}
+
+/* Sumi Light: the five user-locked inverse anchors. */
+body.theme-light {
+  color-scheme: light;
+  --qs-bg: #F8F8F8;
+  --qs-plane: #F8F8F8;
+  --qs-panel: #E5E5E5;
+  --qs-sidebar: #E5E5E5;
+  --qs-chrome: #E5E5E5;
+  --qs-neutral: #F8F8F8;
+  --qs-raised: #F8F8F8;
+  --qs-border: #B0B0B0;
+  --qs-rule-strong: #888888;
+  --qs-fg: #181818;
+  --qs-secondary: #454545;
+  --qs-muted: #595959;
+  --qs-disabled: #888888;
+  --qs-accent: #0B0909;
+  --qs-accent-secondary: #181818;
+  --qs-accent-deep: #0B0909;
+  --qs-link: #181818;
+  --qs-link-hover: #0B0909;
+  --qs-action: #181818;
+  --qs-action-hover: #0B0909;
+  --qs-on-action: #F8F8F8;
+  --qs-focus: #0B0909;
+  --qs-indicator: #0B0909;
+  --qs-icon-active: #181818;
+  --qs-hover: #E5E5E5;
+  --qs-selection: #D0D0D0;
+  --qs-text-selection: #D0D0D0;
+  --qs-tint: #D0D0D0;
+  --qs-tag-ink: #454545;
+  --qs-search-bg: #D0D0D0;
+  --qs-search-ink: #181818;
+  --qs-callout-note: #454545;
+  --background-secondary-alt: #E5E5E5;
+  --background-modifier-cover: #D0D0D0;
+  --background-modifier-form-field: #F8F8F8;
+  --background-modifier-form-field-hover: #E5E5E5;
+  --interactive-normal: #F8F8F8;
+  --interactive-hover: #E5E5E5;
+  --tab-background-active: transparent;
+  --nav-item-background-active: #D0D0D0;
+  --modal-background: #F8F8F8;
+  --modal-sidebar-background: #E5E5E5;
+  --settings-background: #F8F8F8;
+  --prompt-background: #F8F8F8;
+  --menu-background: #F8F8F8;
+  --suggestion-background: #F8F8F8;
+  --scrollbar-thumb-bg: #999999;
+  --scrollbar-active-thumb-bg: #666666;
+  --color-accent-1: #0B0909;
+  --color-accent-2: #181818;
+  --text-highlight-bg-rgb: 208, 208, 208;
+  --table-selection: #D0D0D0;
+  --h1-color: #0B0909;
+  --h2-color: #0B0909;
+  --h3-color: #0B0909;
+  --h4-color: #0B0909;
+  --h5-color: #0B0909;
+  --h6-color: #0B0909;
+  --inline-title-color: #0B0909;
+  --code-background: #E5E5E5;
+  --code-normal: #181818;
+
+  --callout-info: #454545;
+  --callout-todo: #454545;
+  --callout-tip: #181818;
+  --callout-summary: #454545;
+  --callout-important: #0B0909;
+  --callout-example: #454545;
+  --callout-question: #454545;
+  --callout-quote: #454545;
+  --qs-signal-red: #454545;
+  --qs-signal-orange: #454545;
+  --qs-signal-yellow: #595959;
+  --qs-signal-green: #454545;
+  --qs-signal-cyan: #454545;
+  --qs-signal-blue: #454545;
+  --qs-signal-purple: #454545;
+  --qs-signal-pink: #454545;
+  --accent-h: 0.000000;
+  --accent-s: 10.000000%;
+  --accent-l: 3.921569%;
+  --color-accent-hsl: 0.000000, 10.000000%, 3.921569%;
+  --interactive-accent-hsl: 0.000000, 10.000000%, 3.921569%;
+}
+
+body.theme-light.qs-high-contrast {
+  --qs-rule: #888888;
+  --qs-rule-strong: #595959;
+}
+
+/* 10 · Narrow panes, touch, motion & print. Keep native folding/scrolling. */
+@media (max-height: 500px) {
+  body:not(.is-mobile) .prompt {
+    top: 24px;
+    --prompt-max-height: calc(100dvh - 48px);
+  }
+}
+
+@media (max-width: 700px) {
+  body {
+    --file-margins: 20px;
+    --inline-title-size: calc(1.85em * var(--qs-heading-scale));
+    --metadata-label-width: 7em;
+    --prompt-max-width: calc(100vw - 20px);
+  }
+
+  .markdown-rendered pre {
+    padding: 14px;
+  }
+}
+
+body.is-mobile {
+  --input-height: 40px;
+  --nav-item-padding: 9px 10px 9px 20px;
+  --nav-item-parent-padding: 9px 10px 9px 20px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-tab-header,
+  .clickable-icon,
+  .checkbox-container {
+    transition: none;
+  }
+}
+
+@media print {
+  /* Match palette specificity so printed colors reset in every variant. */
+  body[class].theme-dark,
+  body[class].theme-light {
+    --background-primary: #F8F8F8;
+    --background-primary-alt: #F8F8F8;
+    --background-secondary: #E5E5E5;
+    --text-normal: #181818;
+    --text-muted: #595959;
+    --text-faint: #595959;
+    --h1-color: #0B0909;
+    --h2-color: #0B0909;
+    --h3-color: #0B0909;
+    --h4-color: #0B0909;
+    --h5-color: #0B0909;
+    --h6-color: #0B0909;
+    --inline-title-color: #0B0909;
+    --tag-color: #454545;
+    --qs-bg: #F8F8F8;
+    --qs-neutral: #F8F8F8;
+    --qs-panel: #E5E5E5;
+    --qs-border: #B0B0B0;
+    --qs-fg: #181818;
+    --qs-muted: #595959;
+    --qs-secondary: #595959;
+    --qs-link: #0B0909;
+    --qs-signal-red: #454545;
+    --qs-signal-orange: #454545;
+    --qs-signal-yellow: #454545;
+    --qs-signal-green: #454545;
+    --qs-signal-cyan: #454545;
+    --qs-signal-blue: #454545;
+    --qs-signal-purple: #454545;
+    --qs-signal-pink: #454545;
+    --code-background: #E5E5E5;
+    --code-normal: #181818;
+    --code-comment: #595959;
+    --code-function: #454545;
+    --code-important: #454545;
+    --code-keyword: #454545;
+    --code-operator: #454545;
+    --code-property: #454545;
+    --code-string: #454545;
+    --code-tag: #454545;
+    --code-value: #454545;
+  }
+
+  .markdown-rendered pre,
+  .markdown-rendered .callout {
+    page-break-inside: avoid;
+  }
+}

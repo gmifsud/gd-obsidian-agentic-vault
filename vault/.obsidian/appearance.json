@@ -1,0 +1,16 @@
+{
+  "cssTheme": "One Oracle Developer",
+  "interfaceFontFamily": "Inter Variable Text,Source Sans Pro,Inter Display,Roboto,Segoe UI Variable Display,Crimson Pro,SF Pro Display,Roboto SemiCondensed,Bricolage Grotesque 14pt,Roboto Slab,Instrument Sans,Roboto Condensed,Zed Sans,Roboto Mono,SF Pro Text,Noto Sans TC,Noto Sans SC,Noto Sans Hebrew,Noto Sans,Nirmala UI,Microsoft YaHei UI,Microsoft JhengHei UI,Liberation Sans,Inter,Gadugi,DejaVu Sans,Corbel,Bauhaus 93",
+  "baseFontSizeAction": false,
+  "textFontFamily": "Inter Variable Text",
+  "monospaceFontFamily": "Roboto Mono",
+  "theme": "obsidian",
+  "accentColor": "#b9681d",
+  "baseFontSize": 14,
+  "enabledCssSnippets": [
+    "zz-custom-fonts"
+  ],
+  "nativeMenus": true,
+  "showRibbon": true,
+  "showViewHeader": true
+}

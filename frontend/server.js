@@ -4,20 +4,61 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import matter from 'gray-matter';
-
-dotenv.config();
+import { exec } from 'child_process';
+import sessionsRouter from './sessions.js';
+import { readVaultLayout, VaultLayoutError } from './vaultLayout.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Load env variables from root first, then local override from frontend folder
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config({ path: path.resolve(__dirname, '.env') });
+
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.VITE_API_PORT || process.env.PORT || 3001;
 
 // Parse VAULT_PATH (resolve relative to frontend directory)
 const vaultPath = path.resolve(__dirname, process.env.VAULT_PATH || '../vault');
 console.log(`[Vault Server] Target Vault directory: ${vaultPath}`);
 
 app.use(express.json());
+
+// Mount the AI Session Explorer API
+app.use(sessionsRouter);
+
+// Every Vault endpoint works from the Vault layout. A Vault without a usable
+// layout is an error the caller sees, not something to paper over with defaults.
+app.use('/api', (req, res, next) => {
+  if (req.path.startsWith('/orchestrator')) return next();
+  try {
+    req.vaultLayout = readVaultLayout(vaultPath);
+    next();
+  } catch (error) {
+    if (error instanceof VaultLayoutError) {
+      console.error(`[Vault Server] ${error.message}`);
+      return res.status(500).json({ error: error.message });
+    }
+    next(error);
+  }
+});
+
+// --- GET /api/layout ---
+app.get('/api/layout', (req, res) => {
+  res.json(req.vaultLayout);
+});
+
+// Markdown files the Control Panel may read: those at the Vault root and those
+// inside directories the layout declares. Unmanaged, undeclared and
+// dot-directories are never read.
+function vaultMarkdownFiles(layout) {
+  const rootFiles = fs.readdirSync(vaultPath)
+    .filter(name => name.endsWith('.md') && fs.statSync(path.join(vaultPath, name)).isFile())
+    .map(name => path.join(vaultPath, name));
+  const directoryFiles = Object.keys(layout.directories)
+    .flatMap(name => walkDir(path.join(vaultPath, name)));
+  return [...rootFiles, ...directoryFiles];
+}
 
 // Helper function to recursively retrieve all markdown files
 function walkDir(dir, fileList = []) {
@@ -41,7 +82,7 @@ function walkDir(dir, fileList = []) {
 // API endpoint to retrieve all files and their parsed frontmatter
 app.get('/api/files', (req, res) => {
   try {
-    const mdFiles = walkDir(vaultPath);
+    const mdFiles = vaultMarkdownFiles(req.vaultLayout);
     const files = [];
 
     for (const fpath of mdFiles) {
@@ -68,21 +109,8 @@ app.get('/api/files', (req, res) => {
   }
 });
 
-// --- Hemisphere classification helper ---
-const LEFT_FOLDERS = ['01_Journal', '02_Human_Thoughts'];
-const RIGHT_FOLDERS = ['00_MOCs', '10_Repositories', '15_Prototype_Designs', '20_DevOps', '25_Knowledge_Base', '30_Git', '40_Agent_Skills', '50_Databases', '60_Canvas_Maps', '80_Templates'];
-const ARCHIVE_FOLDERS = ['90_Assets'];
-const SYSTEM_FILES = ['CLAUDE.md', 'SOUL.md', 'MEMORY.md', 'USER.md', 'HEARTBEAT.md', 'AGENT_INSTRUCTIONS.md', 'README.md'];
-
-function getHemisphere(folderName) {
-  if (LEFT_FOLDERS.includes(folderName)) return 'left';
-  if (RIGHT_FOLDERS.includes(folderName)) return 'right';
-  if (ARCHIVE_FOLDERS.includes(folderName)) return 'archive';
-  return 'system';
-}
-
 // --- Helper: build nested directory tree ---
-function buildTree(dir, rootDir) {
+function buildTree(dir, rootDir, layout) {
   const result = [];
   if (!fs.existsSync(dir)) return result;
   const entries = fs.readdirSync(dir);
@@ -92,11 +120,14 @@ function buildTree(dir, rootDir) {
     }
     const fullPath = path.join(dir, entry);
     const stat = fs.statSync(fullPath);
+    const isTopLevel = dir === rootDir;
     if (stat.isDirectory()) {
-      const node = { name: entry, type: 'folder', children: buildTree(fullPath, rootDir) };
-      // Tag top-level folders with hemisphere
-      if (path.dirname(fullPath) === rootDir) {
-        node.hemisphere = getHemisphere(entry);
+      // At the top level, show only directories the layout declares
+      if (isTopLevel && !Object.hasOwn(layout.directories, entry)) continue;
+      const node = { name: entry, type: 'folder', children: buildTree(fullPath, rootDir, layout) };
+      // Tag top-level folders with their Zone
+      if (isTopLevel) {
+        node.hemisphere = layout.zoneOf(entry);
       }
       result.push(node);
     } else {
@@ -109,29 +140,27 @@ function buildTree(dir, rootDir) {
 // --- GET /api/status ---
 app.get('/api/status', (req, res) => {
   try {
+    const layout = req.vaultLayout;
+
     // Total markdown files
-    const mdFiles = walkDir(vaultPath);
+    const mdFiles = vaultMarkdownFiles(layout);
     const totalFiles = mdFiles.length;
 
     // System files check
     const systemFilesStatus = {};
-    for (const sf of SYSTEM_FILES) {
+    for (const sf of layout.systemFiles.all) {
       systemFilesStatus[sf] = fs.existsSync(path.join(vaultPath, sf));
     }
 
-    // Hemisphere file counts
+    // File counts per Zone
     const hemispheres = {
-      left: { folders: [...LEFT_FOLDERS], file_count: 0 },
-      right: { folders: [...RIGHT_FOLDERS], file_count: 0 },
-      archive: { folders: [...ARCHIVE_FOLDERS], file_count: 0 }
+      left: { folders: [...layout.zones.left], file_count: 0 },
+      right: { folders: [...layout.zones.right], file_count: 0 },
+      assets: { folders: [...layout.zones.assets], file_count: 0 }
     };
     for (const fpath of mdFiles) {
-      const rel = path.relative(vaultPath, fpath).replace(/\\/g, '/');
-      const topFolder = rel.split('/')[0];
-      const hemi = getHemisphere(topFolder);
-      if (hemi === 'left') hemispheres.left.file_count++;
-      else if (hemi === 'right') hemispheres.right.file_count++;
-      else if (hemi === 'archive') hemispheres.archive.file_count++;
+      const zone = layout.zoneOf(path.relative(vaultPath, fpath));
+      if (hemispheres[zone]) hemispheres[zone].file_count++;
     }
 
     // Parse MEMORY.md for current focus
@@ -178,7 +207,7 @@ app.get('/api/tree', (req, res) => {
     const tree = {
       name: 'vault',
       type: 'folder',
-      children: buildTree(vaultPath, vaultPath)
+      children: buildTree(vaultPath, vaultPath, req.vaultLayout)
     };
     res.json(tree);
   } catch (error) {
@@ -194,8 +223,13 @@ app.get('/api/file/:path(*)', (req, res) => {
     const fullPath = path.resolve(vaultPath, requestedPath);
 
     // Security: prevent directory traversal outside vault
-    if (!fullPath.startsWith(vaultPath)) {
+    const requestedRelative = path.relative(vaultPath, fullPath);
+    if (requestedRelative.startsWith('..') || path.isAbsolute(requestedRelative)) {
       return res.status(403).json({ error: 'Path escapes vault directory' });
+    }
+    // Only root files and directories the layout declares are served
+    if (!req.vaultLayout.isReadable(requestedRelative)) {
+      return res.status(403).json({ error: 'Path is not in a directory declared by the Vault layout' });
     }
 
     if (!fs.existsSync(fullPath) || !fs.statSync(fullPath).isFile()) {
@@ -207,8 +241,7 @@ app.get('/api/file/:path(*)', (req, res) => {
     const name = path.basename(fullPath);
     const basename = name.replace(/\.md$/, '');
     const relativePath = path.relative(vaultPath, fullPath).replace(/\\/g, '/');
-    const topFolder = relativePath.split('/')[0];
-    const hemisphere = getHemisphere(topFolder);
+    const hemisphere = req.vaultLayout.zoneOf(relativePath);
 
     res.json({
       path: relativePath,
@@ -227,36 +260,33 @@ app.get('/api/file/:path(*)', (req, res) => {
 // --- GET /api/hemispheres ---
 app.get('/api/hemispheres', (req, res) => {
   try {
-    const mdFiles = walkDir(vaultPath);
+    const layout = req.vaultLayout;
+    const mdFiles = vaultMarkdownFiles(layout);
 
     const result = {
       left: { label: '🧠 Left Hemisphere', permission: 'READ-ONLY', description: 'Human Domain', folders: {} },
       right: { label: '🤖 Right Hemisphere', permission: 'READ/WRITE', description: 'AI Domain', folders: {} },
-      archive: { label: '🗄️ Archive', permission: 'IGNORE', description: 'Static Assets', folders: {} }
+      assets: { label: '🗄️ Assets', permission: 'READ/WRITE', description: 'Static Files', folders: {} }
     };
 
     // Initialize folder buckets
-    for (const f of LEFT_FOLDERS) result.left.folders[f] = [];
-    for (const f of RIGHT_FOLDERS) result.right.folders[f] = [];
-    for (const f of ARCHIVE_FOLDERS) result.archive.folders[f] = [];
+    for (const zone of Object.keys(result)) {
+      for (const f of layout.zones[zone]) result[zone].folders[f] = [];
+    }
 
     for (const fpath of mdFiles) {
       const rawContent = fs.readFileSync(fpath, 'utf-8');
       const { data } = matter(rawContent);
       const relativePath = path.relative(vaultPath, fpath).replace(/\\/g, '/');
       const topFolder = relativePath.split('/')[0];
-      const hemi = getHemisphere(topFolder);
+      const zone = layout.zoneOf(relativePath);
       const name = path.basename(fpath);
       const basename = name.replace(/\.md$/, '');
 
       const entry = { path: relativePath, name, basename, frontmatter: data };
 
-      if (hemi === 'left' && result.left.folders[topFolder]) {
-        result.left.folders[topFolder].push(entry);
-      } else if (hemi === 'right' && result.right.folders[topFolder]) {
-        result.right.folders[topFolder].push(entry);
-      } else if (hemi === 'archive' && result.archive.folders[topFolder]) {
-        result.archive.folders[topFolder].push(entry);
+      if (result[zone] && result[zone].folders[topFolder]) {
+        result[zone].folders[topFolder].push(entry);
       }
     }
 
@@ -387,7 +417,7 @@ app.get('/api/skills', (req, res) => {
 app.get('/api/system-files', (req, res) => {
   try {
     const result = {};
-    for (const sf of SYSTEM_FILES) {
+    for (const sf of req.vaultLayout.systemFiles.all) {
       const filePath = path.join(vaultPath, sf);
       const exists = fs.existsSync(filePath);
       result[sf] = {
@@ -400,6 +430,48 @@ app.get('/api/system-files', (req, res) => {
     console.error('[Vault Server] Error reading system files:', error);
     res.status(500).json({ error: 'Failed to read system files' });
   }
+});
+
+// --- POST /api/orchestrator/run ---
+app.post('/api/orchestrator/run', (req, res) => {
+  const { command, args = [] } = req.body;
+
+  const allowedScripts = {
+    generator: '../backend/architect_generator.py',
+    manager: '../backend/vault_manager.py',
+    query: '../backend/query.py'
+  };
+
+  const scriptKey = command;
+  if (!allowedScripts[scriptKey]) {
+    return res.status(400).json({ error: 'Invalid orchestrator command' });
+  }
+
+  const scriptPath = path.resolve(__dirname, allowedScripts[scriptKey]);
+
+  // Resolve Python virtual environment interpreter if exists, else fallback to standard python
+  const pythonPath = process.platform === 'win32'
+    ? path.resolve(__dirname, '../backend/venv/Scripts/python.exe')
+    : path.resolve(__dirname, '../backend/venv/bin/python');
+  const interpreter = fs.existsSync(pythonPath) ? pythonPath : 'python';
+
+  // Basic argument validation and formatting
+  const safeArgs = args.map(arg => {
+    // Basic sanitization: strip dangerous shell characters
+    return `"${String(arg).replace(/["`$\\]/g, '')}"`;
+  }).join(' ');
+
+  const cmd = `"${interpreter}" "${scriptPath}" ${safeArgs}`;
+  console.log(`[Orchestrator API] Executing: ${cmd}`);
+
+  exec(cmd, { cwd: vaultPath }, (error, stdout, stderr) => {
+    res.json({
+      success: !error || error.code === 0,
+      code: error ? error.code : 0,
+      stdout: stdout,
+      stderr: stderr
+    });
+  });
 });
 
 // Serve static assets in production mode

@@ -1,0 +1,262 @@
+{
+  "language": "auto",
+  "defaultPropertyType": "text",
+  "filterTemplates": [],
+  "queueTemplates": [],
+  "sessionFilePath": "",
+  "lastSeenUpdatesVersion": "1.2.0",
+  "explorerCtrlClickSearch": true,
+  "explorerShowQueuePreview": true,
+  "explorerContentSearch": true,
+  "explorerSearchHighlights": false,
+  "explorerOperationScope": "auto",
+  "operationsPanelPosition": "right",
+  "basesLastUsedPath": "",
+  "basesOpenMode": "last-used",
+  "basesOpsPanelSide": "left",
+  "basesExplorerSide": "right",
+  "basesAutoAttach": false,
+  "basesInjectCheckboxes": true,
+  "basesShowColumnSeparators": false,
+  "openMode": "both",
+  "pageOrder": [
+    "filters",
+    "statistics"
+  ],
+  "separatePanes": false,
+  "viewMode": "list",
+  "filtersShowTabLabels": true,
+  "minimalStyle": true,
+  "coloredBadges": false,
+  "addonCellStyle": "native",
+  "iconicEnabled": true,
+  "filesIconScope": "all",
+  "badgeCancelClickMode": "single",
+  "showDock": false,
+  "floatingTocEnabled": false,
+  "floatingTocNiagara": false,
+  "floatingTocNiagaraNodes": false,
+  "floatingTocPlainStyle": false,
+  "tocPosition": "right",
+  "tocReservedLane": false,
+  "tocHideExplorerScrollbar": true,
+  "tocGlyphMode": "letter",
+  "tocLabelMode": "scrub",
+  "tocReveal": "all",
+  "tocGlow": true,
+  "tocNameOrder": "down",
+  "tocNamePill": false,
+  "tocSoftScroll": false,
+  "tocStretch": false,
+  "tocGlyphColor": "default",
+  "tocGlyphCustomColor": "#7c3aed",
+  "tocGlyphColorMode": "static",
+  "explorerGlyphColor": "default",
+  "explorerGlyphCustomColor": "#7c3aed",
+  "explorerGlyphScope": "folders",
+  "tocDrillSyncsSort": false,
+  "sortLevelInline": true,
+  "excludedFilePaths": [],
+  "explorerRainbowFolders": false,
+  "collapsedFolderBadges": "dot",
+  "folderAggregateCells": false,
+  "toolbarToolsMenu": false,
+  "toolbarOverflowStrategy": "condensed",
+  "createFileCommand": "",
+  "toolbarCommandActions": [],
+  "createActionsPlacement": "searchbox",
+  "filesHoverInfo": [
+    "mtime",
+    "ctime",
+    "words"
+  ],
+  "addonIconOverrides": {},
+  "orderCellsByActivation": false,
+  "iconInCaretSlot": false,
+  "filesContextMenuLayout": [],
+  "showToolbar": true,
+  "bypassOperations": false,
+  "suppressBulkOperationWarning": false,
+  "bulkOperationWarningThreshold": 400,
+  "performanceHudEnabled": true,
+  "filtersTabLabelsMigrated": true,
+  "viewCompositionsSeeded": true,
+  "glassBlurIntensity": 60,
+  "contextMenuShowInFileMenu": true,
+  "contextMenuShowInEditorMenu": true,
+  "contextMenuShowInMoreOptions": true,
+  "contextMenuHideRules": [],
+  "savedLayouts": [
+    {
+      "name": "Basic list",
+      "summary": "Flat tree · identity cells · nesting off",
+      "config": {
+        "files": {
+          "viewMode": "tree",
+          "visibleCells": [
+            "name",
+            "ext"
+          ],
+          "sortState": {
+            "sorts": {},
+            "activeScope": "all",
+            "drillNodeId": null,
+            "nodeTypeFilter": null,
+            "parentsFirst": true,
+            "fixedFolders": true
+          }
+        },
+        "props": {
+          "viewMode": "tree",
+          "visibleCells": [
+            "icon",
+            "text",
+            "count"
+          ],
+          "sortState": {
+            "sorts": {},
+            "activeScope": "properties",
+            "nodeTypeFilter": null
+          }
+        },
+        "tags": {
+          "viewMode": "tree",
+          "visibleCells": [
+            "icon",
+            "text",
+            "count"
+          ],
+          "sortState": {
+            "sorts": {},
+            "activeScope": "all",
+            "drillNodeId": null,
+            "nodeTypeFilter": null
+          }
+        },
+        "snippets": {
+          "viewMode": "tree",
+          "visibleCells": [
+            "icon",
+            "text",
+            "state"
+          ],
+          "sortState": {
+            "sorts": {},
+            "activeScope": "all",
+            "nodeTypeFilter": null
+          }
+        },
+        "plugins": {
+          "viewMode": "tree",
+          "visibleCells": [
+            "icon",
+            "text",
+            "state",
+            "config"
+          ],
+          "sortState": {
+            "sorts": {},
+            "activeScope": "all",
+            "nodeTypeFilter": null
+          }
+        }
+      }
+    },
+    {
+      "name": "Preview",
+      "summary": "Full tree · all cells · index",
+      "config": {
+        "files": {
+          "viewMode": "tree",
+          "visibleCells": [
+            "icon",
+            "name",
+            "path",
+            "ext",
+            "mtime",
+            "ctime",
+            "opened",
+            "words",
+            "tasks",
+            "count",
+            "nested"
+          ],
+          "sortState": {
+            "sorts": {},
+            "activeScope": "all",
+            "drillNodeId": null,
+            "nodeTypeFilter": null,
+            "parentsFirst": true,
+            "fixedFolders": true
+          }
+        },
+        "props": {
+          "viewMode": "tree",
+          "visibleCells": [
+            "icon",
+            "text",
+            "type",
+            "count",
+            "nested"
+          ],
+          "sortState": {
+            "sorts": {},
+            "activeScope": "properties",
+            "nodeTypeFilter": null
+          }
+        },
+        "tags": {
+          "viewMode": "tree",
+          "visibleCells": [
+            "icon",
+            "text",
+            "count",
+            "nested"
+          ],
+          "sortState": {
+            "sorts": {},
+            "activeScope": "all",
+            "drillNodeId": null,
+            "nodeTypeFilter": null
+          }
+        },
+        "snippets": {
+          "viewMode": "tree",
+          "visibleCells": [
+            "icon",
+            "text",
+            "state",
+            "installed",
+            "updated"
+          ],
+          "sortState": {
+            "sorts": {},
+            "activeScope": "all",
+            "nodeTypeFilter": null
+          }
+        },
+        "plugins": {
+          "viewMode": "tree",
+          "visibleCells": [
+            "icon",
+            "text",
+            "state",
+            "config",
+            "installed",
+            "updated"
+          ],
+          "sortState": {
+            "sorts": {},
+            "activeScope": "all",
+            "nodeTypeFilter": null
+          }
+        }
+      },
+      "floatingToc": {
+        "enabled": true,
+        "kind": "files",
+        "rootId": null
+      }
+    }
+  ]
+}

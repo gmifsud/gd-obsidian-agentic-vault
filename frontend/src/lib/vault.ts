@@ -18,7 +18,7 @@ export interface VaultStatus {
   hemispheres: {
     left: { folders: string[]; file_count: number };
     right: { folders: string[]; file_count: number };
-    archive: { folders: string[]; file_count: number };
+    assets: { folders: string[]; file_count: number };
   };
   memory_focus: string;
   heartbeat_checked: number;
@@ -35,7 +35,7 @@ export interface HemisphereData {
 export interface HemispheresResponse {
   left: HemisphereData;
   right: HemisphereData;
-  archive: HemisphereData;
+  assets: HemisphereData;
 }
 
 export interface MOCFile {
@@ -156,6 +156,102 @@ export async function getTree(): Promise<TreeNode | null> {
   return apiFetch<TreeNode>('/api/tree');
 }
 
+export interface OrchestratorResult {
+  success: boolean;
+  code: number;
+  stdout: string;
+  stderr: string;
+}
+
+export async function runOrchestratorCommand(command: string, args: string[]): Promise<OrchestratorResult | null> {
+  try {
+    const response = await fetch('/api/orchestrator/run', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ command, args }),
+    });
+    if (response.ok) {
+      return await response.json();
+    }
+    console.warn(`[Vault API] Run orchestrator command failed with status ${response.status}`);
+    return null;
+  } catch (error) {
+    console.warn('[Vault API] Failed to run orchestrator command:', error);
+    return null;
+  }
+}
+
+// ============================================
+// Session Explorer API Layer
+// ============================================
+
+export type SessionProvider = 'claude' | 'codex' | 'cursor' | 'gemini' | 'kilocode';
+
+export interface SessionSummary {
+  id: string;
+  provider: SessionProvider;
+  project: string;
+  startedAt: string;
+  lastModified: string;
+  messageCount: number;
+  sizeBytes: number;
+  sourcePath: string;
+}
+
+export interface SessionListResponse {
+  total: number;
+  providers_scanned: string[];
+  cursor_available: boolean;
+  sessions: SessionSummary[];
+}
+
+export interface SessionMessage {
+  role: 'user' | 'assistant' | 'tool' | 'system' | string;
+  content: string;
+  timestamp: string;
+}
+
+export interface SessionDetail {
+  messages: SessionMessage[];
+  sourcePath: string;
+}
+
+export async function fetchSessions(providers?: SessionProvider[]): Promise<SessionListResponse | null> {
+  const params = providers ? `?provider=${providers.join(',')}` : '';
+  return apiFetch<SessionListResponse>(`/api/sessions${params}`);
+}
+
+export async function fetchSessionDetail(provider: string, id: string): Promise<SessionDetail | null> {
+  return apiFetch<SessionDetail>(`/api/sessions/${encodeURIComponent(provider)}/${encodeURIComponent(id)}`);
+}
+
+export interface BackupResponse {
+  success: boolean;
+  backedUpCount?: number;
+  totalScannedProviders?: number;
+  error?: string;
+  errors?: string[] | null;
+}
+
+export async function backupSessions(providers: SessionProvider[], targetPath: string): Promise<BackupResponse | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/sessions/backup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ providers, targetPath }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      return { success: false, error: err.error || 'Server error' };
+    }
+    return res.json();
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Network connection error' };
+  }
+}
+
 // ============================================
 // Frontmatter Parser (browser-safe fallback)
 // ============================================
@@ -211,30 +307,61 @@ function parseFrontmatter(raw: string) {
 }
 
 // ============================================
-// Utility: Hemisphere classification
+// Vault layout: Zone classification
 // ============================================
+// The layout comes from the Vault's vault.config.yaml via the API server.
+// The browser holds no directory lists of its own.
 
-const LEFT_DIRS = ['01_Journal', '02_Human_Thoughts'];
-const RIGHT_DIRS = [
-  '00_MOCs', '10_Repositories', '15_Prototype_Designs', '20_DevOps',
-  '25_Knowledge_Base', '30_Git', '40_Agent_Skills', '50_Databases',
-  '60_Canvas_Maps', '80_Templates'
-];
-const ARCHIVE_DIRS = ['90_Assets'];
+export type Zone = 'left' | 'right' | 'assets';
 
-export function getHemisphereForPath(filePath: string): 'left' | 'right' | 'archive' | 'system' {
+export interface VaultLayoutInfo {
+  directories: Record<string, Zone>;
+  zones: Record<Zone, string[]>;
+  unmanaged: string[];
+  system_files: { required: string[]; optional: string[] };
+}
+
+let vaultLayout: VaultLayoutInfo | null = null;
+
+/**
+ * Fetch the Vault layout once, before rendering.
+ * - Throws if the server reports that the Vault's layout is missing or invalid.
+ * - Resolves to null when there is no API server (static hosting); paths then
+ *   have no Zone and are classified as 'system'.
+ */
+export async function loadVaultLayout(): Promise<VaultLayoutInfo | null> {
+  let response: Response;
+  try {
+    response = await fetch('/api/layout');
+  } catch {
+    return null;
+  }
+  const body = await response.json().catch(() => null);
+  if (response.ok && body?.directories) {
+    vaultLayout = body as VaultLayoutInfo;
+    return vaultLayout;
+  }
+  if (body?.error) {
+    throw new Error(body.error);
+  }
+  return null;
+}
+
+export function getHemisphereForPath(filePath: string): Zone | 'system' {
   const topFolder = filePath.split('/')[0];
-  if (LEFT_DIRS.includes(topFolder)) return 'left';
-  if (RIGHT_DIRS.includes(topFolder)) return 'right';
-  if (ARCHIVE_DIRS.includes(topFolder)) return 'archive';
-  return 'system';
+  return vaultLayout?.directories[topFolder] ?? 'system';
+}
+
+/** The directories the layout places in a Zone (empty when no layout is loaded). */
+export function getZoneDirectories(zone: Zone): string[] {
+  return vaultLayout?.zones[zone] ?? [];
 }
 
 export function getHemisphereColor(hemisphere: string): string {
   switch (hemisphere) {
     case 'left': return 'var(--color-left-hemisphere)';
     case 'right': return 'var(--color-right-hemisphere)';
-    case 'archive': return 'var(--color-archive)';
+    case 'assets': return 'var(--color-archive)';
     case 'system': return 'var(--color-system)';
     default: return 'var(--color-text-muted)';
   }

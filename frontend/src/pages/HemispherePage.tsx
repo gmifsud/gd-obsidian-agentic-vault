@@ -9,12 +9,12 @@ interface HemispherePageProps {
   files: VaultFile[];
 }
 
-type HemisphereTab = 'left' | 'right' | 'archive';
+type HemisphereTab = 'left' | 'right' | 'assets';
 
 const TABS: { key: HemisphereTab; label: string; icon: any; badgeClass: string; description: string }[] = [
   { key: 'left', label: '🧠 Left Hemisphere', icon: Brain, badgeClass: 'badge-left', description: 'Human Domain — READ-ONLY for AI agents' },
   { key: 'right', label: '🤖 Right Hemisphere', icon: Bot, badgeClass: 'badge-right', description: 'AI Domain — Full READ/WRITE autonomy' },
-  { key: 'archive', label: '🗄️ Archive', icon: Archive, badgeClass: 'badge-archive', description: 'Static assets — IGNORE by AI agents' },
+  { key: 'assets', label: '🗄️ Assets', icon: Archive, badgeClass: 'badge-archive', description: 'Static files referenced by notes — READ/WRITE for AI agents' },
 ];
 
 export function HemispherePage({ files }: HemispherePageProps) {
@@ -26,7 +26,7 @@ export function HemispherePage({ files }: HemispherePageProps) {
   }, []);
 
   // Group files by hemisphere and folder (client-side fallback)
-  const grouped: Record<HemisphereTab, Record<string, VaultFile[]>> = { left: {}, right: {}, archive: {} };
+  const grouped: Record<HemisphereTab, Record<string, VaultFile[]>> = { left: {}, right: {}, assets: {} };
   
   files.forEach(f => {
     const hemisphere = getHemisphereForPath(f.path);
@@ -91,7 +91,7 @@ export function HemispherePage({ files }: HemispherePageProps) {
             <p className="text-xs text-[var(--color-text-muted)] mt-1">{totalFiles} files across {Object.keys(currentFolders).length} folders</p>
           </div>
           <span className={`badge ${currentTab.badgeClass}`}>
-            {activeTab === 'left' ? 'READ-ONLY' : activeTab === 'right' ? 'READ / WRITE' : 'IGNORE'}
+            {activeTab === 'left' ? 'READ-ONLY' : 'READ / WRITE'}
           </span>
         </div>
       </div>

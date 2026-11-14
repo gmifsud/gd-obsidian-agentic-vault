@@ -21,6 +21,7 @@ WHERE type = "git_workflow"
 ```
 
 ## Static Agent Index
+- [[Git - GitKraken Hooks Troubleshooting]] | resource_name: GitKraken Hooks Troubleshooting
 - [[Git - Hotfix Workflow]] | workflow_name: Hotfix Workflow
 - [[Git - Log Formatting]] | resource_name: Log Formatting
 - [[Git - PR Template]] | resource_name: PR Template

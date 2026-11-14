@@ -4,7 +4,7 @@ import { FileText, Layers, Cpu, FileCode2, ArrowRight, Clock } from 'lucide-reac
 import { HemisphereCard } from '../components/HemisphereCard';
 import { SystemHealthPanel } from '../components/SystemHealthPanel';
 import { 
-  VaultFile, VaultStatus, getVaultStatus, getHemisphereForPath 
+  VaultFile, VaultStatus, getVaultStatus, getHemisphereForPath, getZoneDirectories 
 } from '../lib/vault';
 
 interface DashboardPageProps {
@@ -19,7 +19,7 @@ export function DashboardPage({ files }: DashboardPageProps) {
   }, []);
 
   // Compute hemisphere counts from files
-  const hemisphereCount = { left: 0, right: 0, archive: 0, system: 0 };
+  const hemisphereCount = { left: 0, right: 0, assets: 0, system: 0 };
   files.forEach(f => {
     const h = getHemisphereForPath(f.path);
     hemisphereCount[h]++;
@@ -102,12 +102,12 @@ export function DashboardPage({ files }: DashboardPageProps) {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-children">
           <HemisphereCard
             type="left"
-            folders={['01_Journal', '02_Human_Thoughts']}
+            folders={getZoneDirectories('left')}
             fileCount={hemisphereCount.left}
           />
           <HemisphereCard
             type="right"
-            folders={['10_Repositories', '20_DevOps', '30_Git', '40_Agent_Skills', '80_Templates']}
+            folders={getZoneDirectories('right')}
             fileCount={hemisphereCount.right}
           />
           <HemisphereCard

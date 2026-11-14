@@ -1,0 +1,48 @@
+{
+  "mode": "simple",
+  "customMdDir": "../External Vault",
+  "customAssetDir": "../External Vault/attachments",
+  "vaultTargetFolder": "",
+  "vaultAssetFolder": "assets",
+  "handleOtherAttachments": true,
+  "richPasteTakeover": true,
+  "moveSourceAfterTransfer": false,
+  "transferRecursive": false,
+  "cutUseTrash": true,
+  "contextMenuEnabled": true,
+  "contextMenuVaultMdFolder": "",
+  "contextMenuUseDefaultAttachmentFolder": true,
+  "contextMenuMoveSource": true,
+  "ribbonEnabled": true,
+  "ribbonClickAction": "menu",
+  "ribbonMaxNotes": 20,
+  "linkStyle": "angle",
+  "keepOriginalName": true,
+  "writeTitle": true,
+  "noteTemplateMode": "text",
+  "noteTemplatePath": "",
+  "noteTemplateText": "---\ncategory: \ntags: \naliases: \nstars: \n来源:\n---\n\n\n\n\n",
+  "language": "auto",
+  "externalVaults": [
+    {
+      "id": "vault-1794644908937",
+      "name": "EYESEL",
+      "mdDir": "../../../Users/grego/Documents/Obsidian/Knowledge/Work/Projects/EYESEL",
+      "assetDir": "../../../Users/grego/Documents/Obsidian/Knowledge/Work/Projects/EYESEL/attachments"
+    },
+    {
+      "id": "vault-1794645243487",
+      "name": "eyesel-cim-wolt-integration",
+      "mdDir": "../../Backend.worktrees/feature/eyesel-cim-wolt-integration",
+      "assetDir": "../../Backend.worktrees/feature/eyesel-cim-wolt-integration/attachments"
+    }
+  ],
+  "activeVaultId": "vault-1794644908937",
+  "showNotice": true,
+  "debug": false,
+  "externalFolder": "",
+  "rootDir": "",
+  "notesDir": "notes",
+  "imageDir": "images",
+  "assetFolder": "assets"
+}

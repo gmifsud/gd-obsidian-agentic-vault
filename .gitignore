@@ -1,4 +1,7 @@
 node_modules/
+backend/venv/
+__pycache__/
+*.pyc
 build/
 dist/
 coverage/
@@ -11,3 +14,8 @@ coverage/
 .obsidian/workspace
 .obsidian/workspace.json
 .obsidian/workspace-mobile.json
+# agentforge generated
+.claude/skills
+.codex/skills
+.agents/skills
+.gemini/skills

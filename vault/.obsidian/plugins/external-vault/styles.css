@@ -1,0 +1,446 @@
+/* external-vault —— 新建库外 MD 的弹窗 */
+
+.ev-preview,
+.ev-settings-preview {
+  white-space: pre-wrap;
+  word-break: break-all;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  border-radius: 8px;
+  background: var(--background-secondary);
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  line-height: 1.6;
+}
+
+.external-vault-modal .ev-label {
+  margin: 10px 0 4px;
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+}
+
+.external-vault-modal .ev-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ev-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+.external-vault-modal .ev-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+/* 设置面板：分组标题黑体加粗，只作用于本插件页 */
+.ev-settings .setting-item-heading .setting-item-name,
+.ev-settings .setting-item.setting-item-heading .setting-item-name {
+  font-weight: 700;
+  color: var(--text-normal);
+  font-size: 15px;
+}
+.ev-settings .setting-item-heading {
+  margin-top: 14px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding-bottom: 6px;
+}
+
+/* 设置面板：自定义新建 MD 模板内容 */
+textarea.ev-template-textarea {
+  width: 100%;
+  min-height: 150px;
+  box-sizing: border-box;
+  font-family: var(--font-monospace);
+  font-size: var(--font-ui-smaller);
+  line-height: 1.5;
+  resize: vertical;
+}
+
+/* Ribbon「打开 External Vault」按钮：轻微上浮，和原生按钮保持同一套配色 */
+.ev-ribbon-external-vault {
+  transition: transform 120ms ease;
+}
+.ev-ribbon-external-vault:hover {
+  transform: translateY(-1px);
+}
+
+/* 如以后要给库外标签页加视觉标记：
+   .view-header-title-parent.mod-external-file { } */
+
+/* 库外文件链接：红色、无下划线
+   除 class 外，用 data-href / href 的 ../ 前缀兜底；
+   不限定标签名，同时覆盖阅读视图的 a 和 Live Preview 的 cm-* 元素 */
+[data-href^="../"],
+[href^="../"],
+[data-href^="../"] .cm-link,
+[data-href^="../"] .cm-url,
+[data-href^="../"] .cm-hmd-internal-link,
+a.ev-external-link,
+.ev-external-link,
+.cm-hmd-internal-link.ev-external-link,
+.cm-link.ev-external-link {
+  color: rgb(188, 43, 22) !important;
+  text-decoration: none !important;
+  border-bottom: none !important;
+  background-image: none !important;
+}
+[data-href^="../"]::after,
+[href^="../"]::after,
+.ev-external-link::after,
+.cm-hmd-internal-link.ev-external-link::after,
+.cm-link.ev-external-link::after {
+  content: none !important;
+}
+[data-href^="../"]:hover,
+[href^="../"]:hover,
+a.ev-external-link:hover,
+.cm-hmd-internal-link.ev-external-link:hover,
+.cm-link.ev-external-link:hover {
+  color: rgb(188, 43, 22) !important;
+  text-decoration: none !important;
+}
+/* Live Preview：覆盖 Obsidian 用 CSS 变量控制的链接颜色与下划线 */
+span.cm-hmd-internal-link.ev-external-link,
+span.cm-hmd-internal-link.ev-external-link .cm-underline,
+.ev-external-link,
+.ev-external-link .cm-underline {
+  --link-color: rgb(188, 43, 22);
+  --link-color-hover: rgb(188, 43, 22);
+  --link-decoration: none;
+  --link-decoration-hover: none;
+  color: rgb(188, 43, 22) !important;
+  text-decoration: none !important;
+}
+
+/* 库外笔记的标签页标题：非激活 = 淡红，激活 = 深红 */
+.workspace-tab-header-inner-title.ev-external-tab,
+.workspace-tab-header-inner-title.ev-external-tab .workspace-tab-header-inner-title-text {
+  color: rgba(188, 43, 22, 0.55) !important;
+  text-decoration: none;
+}
+
+.workspace-tab-header.is-active .workspace-tab-header-inner-title.ev-external-tab,
+.workspace-tab-header.is-active .workspace-tab-header-inner-title.ev-external-tab .workspace-tab-header-inner-title-text,
+.workspace-tab-header.mod-active .workspace-tab-header-inner-title.ev-external-tab {
+  color: rgb(188, 43, 22) !important;
+}
+
+/* 暗色主题下淡红要提亮，否则深底上发黑；激活态仍走上面的深红 */
+.theme-dark .workspace-tab-header-inner-title.ev-external-tab,
+.theme-dark .workspace-tab-header-inner-title.ev-external-tab .workspace-tab-header-inner-title-text {
+  color: rgba(236, 122, 106, 0.8) !important;
+}
+
+/* 「（外）」后缀已移除，仅保留红色区分 */
+
+/* 右侧边栏：库外文件面板 */
+.ev-panel { padding: 8px; }
+.ev-panel-head { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+.ev-panel-head input { flex: 1; min-width: 0; }
+.ev-panel-head .ev-panel-count {
+  flex: none;
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.ev-panel-actions { display: flex; gap: 4px; }
+.ev-panel-toolbar {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  max-height: 0;
+  margin-bottom: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: max-height 120ms ease, opacity 120ms ease, margin-bottom 120ms ease;
+}
+.ev-panel:hover .ev-panel-toolbar,
+.ev-panel-toolbar:focus-within {
+  max-height: 40px;
+  margin-bottom: 4px;
+  opacity: 1;
+  pointer-events: auto;
+}
+/* 标题栏内的按钮：跟随标题栏 hover 显示，平时不占内容区空间 */
+.ev-panel-toolbar-inline {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  margin-left: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+.view-header:hover .ev-panel-toolbar-inline {
+  opacity: 1;
+  pointer-events: auto;
+}
+.ev-panel .view-header-left { overflow: visible; }
+.ev-panel-toolbar-fallback {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.ev-panel-btn { padding: 4px; height: auto; }
+.ev-panel-btn svg { width: 16px; height: 16px; }
+/* 列表复用 Obsidian 文件浏览器的结构类（nav-files-container / tree-item / nav-file-title），
+   行高、缩进、hover、选中态全部由主题决定，和左侧文件列表保持一致 */
+.ev-panel-list { padding: 2px 0; }
+.ev-more {
+  padding: 6px 10px;
+  font-size: 0.85em;
+  color: var(--text-muted);
+  border-left: 2px solid var(--background-modifier-border);
+  margin: 2px 0 4px;
+}
+/* 指向库外文件的链接统一红色（编辑器和阅读视图都生效） */
+.ev-external-link,
+.cm-hmd-internal-link.ev-external-link,
+.cm-link.ev-external-link,
+.markdown-rendered a.ev-external-link,
+.markdown-rendered a.external-link.ev-external-link,
+.markdown-rendered a.internal-link.ev-external-link {
+  color: rgb(188, 43, 22) !important;
+  text-decoration: none;
+}
+/* 悬停灰框：部分主题只在文件浏览器容器内生效，这里按同样的变量显式补上 */
+.ev-panel .nav-folder-children { padding-left: 16px; }
+.ev-panel .nav-file-title,
+.ev-panel .nav-folder-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px;
+  min-height: 28px;
+  border-radius: var(--radius-s, 6px);
+  font-size: var(--nav-item-size, 13px);
+}
+.ev-panel .nav-folder-collapse-indicator {
+  position: static;
+  transform: none;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  color: var(--text-muted);
+}
+.ev-panel .nav-folder-title-content { margin-left: 0; padding-left: 0; }
+.ev-panel .nav-folder-collapse-indicator svg { width: 14px; height: 14px; }
+/* 圆点绝对定位，不参与布局；所有文件行固定左内边距，选中不改变文字位置 */
+.ev-panel .nav-file-title,
+.ev-panel .nav-file-title.is-active {
+  display: flex !important;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px !important;
+  margin-left: 0 !important;
+  border-left: 0 !important;
+  transform: none !important;
+}
+/* Baseline 主题会给 .tree-item-self.is-active::before 加一个带负 margin 的圆点，
+   在 flex 行里会挤动文字；这里用更高优先级彻底禁掉，圆点交给 .ev-panel-bullet */
+body .ev-panel .nav-file-title.is-active::before,
+body .ev-panel .nav-file-title.is-active::after {
+  content: none !important;
+  display: none !important;
+  position: static !important;
+  margin: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+.ev-panel .ev-panel-bullet {
+  flex: none;
+  width: 16px;
+  text-align: center;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--text-normal);
+}
+/* 用自定义类表示选中，避免命中主题的 .is-active 规则 */
+.ev-panel .nav-file-title.ev-active {
+  background-color: var(--nav-item-background-active, var(--background-modifier-hover));
+}
+.ev-panel .nav-file-title:hover,
+.ev-panel .nav-folder-title:hover,
+.ev-panel .tree-item-self:hover {
+  background-color: var(--nav-item-background-hover, var(--background-modifier-hover));
+}
+.ev-panel-empty { padding: 12px 8px; color: var(--text-muted); font-size: var(--font-ui-small); }
+
+/* 库外文件管理器（ExternalFilesModal） */
+.modal.ev-files-modal {
+  width: min(620px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+}
+.ev-files-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.ev-files-head h2 {
+  flex: none;
+  margin: 0;
+}
+.ev-files-search {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ev-files-search input {
+  width: 100%;
+  box-sizing: border-box;
+}
+.ev-files-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 6px 0 10px;
+}
+.ev-files-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.ev-files-count {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+.ev-files-list {
+  max-height: 46vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+}
+.ev-files-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 11px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  cursor: pointer;
+}
+.ev-files-row:last-child { border-bottom: none; }
+.ev-files-row:hover { background: var(--background-modifier-hover); }
+.ev-files-row.is-openable { cursor: pointer; user-select: none; }
+.ev-files-row.is-active { background: var(--background-modifier-hover); }
+.ev-files-alias { font-size: var(--font-ui-smaller); color: var(--text-muted); }
+.ev-files-kind {
+  display: inline-block;
+  min-width: 30px;
+  margin-right: 6px;
+  padding: 0 4px;
+  border-radius: 4px;
+  font-size: 10px;
+  line-height: 16px;
+  text-align: center;
+  color: var(--text-muted);
+  background: var(--background-modifier-border);
+}
+.ev-finder-btn { margin-right: auto; }
+.ev-files-row input[type='checkbox'] { margin-top: 3px; flex: none; }
+.ev-files-main { flex: 1; min-width: 0; }
+.ev-files-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ev-files-path {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ev-files-meta {
+  flex: 0 1 auto;
+  max-width: 42%;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller);
+  white-space: nowrap;
+}
+.ev-files-empty {
+  padding: 26px 12px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* 从面板把库外笔记拖到标签页：插入位置短线（对齐原生观感） */
+.ev-tab-insert {
+  width: 4px;
+  border-radius: 2px;
+  background: var(--interactive-accent);
+  opacity: 0.5;
+}
+
+/* 拖动到标签页时跟随光标的深色提示卡：图标 + 文件名 + 说明。
+   注意：不能用 --text-on-accent 之类的主题变量——部分主题里它是深色，
+   会导致黑底黑字（实测踩过）。这里固定用深色卡 + 白字，和原生提示一致。 */
+.ev-drop-tip {
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(30, 30, 30, 0.96);
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  font-size: 12px;
+  line-height: 1.35;
+  max-width: 360px;
+}
+.ev-drop-tip-icon {
+  display: flex;
+  align-items: center;
+  flex: none;
+  color: #ffffff;
+}
+.ev-drop-tip-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.ev-drop-tip-name {
+  color: #ffffff;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ev-drop-tip-sub {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 11px;
+}
+
+/* 拖到标签页中间：提示将替换该标签的内容 */
+.workspace-tab-header.ev-tab-replace {
+  background-color: var(--background-modifier-hover);
+  border-radius: var(--radius-s, 6px);
+  box-shadow: inset 0 0 0 1px var(--background-modifier-border);
+}
+
+/* 拖到正文时，在插入位置画的闪烁竖线（原生由 CodeMirror drop cursor 提供） */
+.ev-drop-caret {
+  width: 2px;
+  border-radius: 1px;
+  background: var(--text-normal);
+  animation: ev-caret-blink 1s steps(1) infinite;
+}
+@keyframes ev-caret-blink {
+  50% { opacity: 0; }
+}

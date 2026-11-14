@@ -1,0 +1,147 @@
+/* Halyard Sync — plugin styles. Obsidian loads this file automatically from
+   the plugin folder alongside manifest.json/main.js; nothing here is bundled
+   into main.js and no manual registration is needed. */
+
+/* Device-code display in the OAuth device-flow modal (ui/modals.ts). */
+.halyard-sync-device-code {
+	font-size: 2em;
+	font-weight: bold;
+	letter-spacing: 0.15em;
+	text-align: center;
+	margin: 0.5em 0;
+	user-select: text;
+}
+
+/* Inline validation error text (ui/modals.ts setup wizard). */
+.halyard-sync-error-text {
+	color: var(--text-error);
+}
+
+/* Detected-existing-remote prefill hint (ui/modals.ts setup wizard step 1). */
+.halyard-sync-hint-text {
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+}
+
+/* Setup wizard modal (ui/modals.ts SetupWizardModal) — Obsidian's default
+   modal width is sized for short settings rows, not a URL field or a row
+   with two buttons plus a token field; both were visibly cramped. */
+.halyard-sync-wizard-modal {
+	width: min(640px, 92vw);
+}
+
+/* Lets a row's controls (e.g. two buttons plus a saved-token notice) wrap
+   onto multiple lines instead of squeezing into one narrow strip. */
+.halyard-sync-wizard-modal .setting-item-control {
+	flex-wrap: wrap;
+	justify-content: flex-end;
+}
+
+/* Full-width text fields (remote URL, token) instead of Obsidian's default
+   short-field sizing, which is sized for compact settings values. */
+.halyard-sync-wide-input {
+	width: 100%;
+	flex: 1 1 auto;
+}
+
+/* Insecure secret-storage warning banner (settings.ts Account section). */
+.halyard-sync-warning-banner {
+	padding: 0.6em 1em;
+	margin-bottom: 0.8em;
+}
+
+/* Ribbon icon (main.ts) — tinted when there's something to look at. */
+.halyard-sync-ribbon-attention {
+	color: var(--text-warning);
+}
+
+.halyard-sync-ribbon-error {
+	color: var(--text-error);
+}
+
+/* Syncing state (main.ts's updateRibbon): the halyard rope (ui/icon.ts's
+   custom icon, the .halyard-sync-icon-rope path) "flows" along its own
+   length instead of the whole glyph spinning — keeps the block and arrows
+   still, reading as data moving along the halyard rather than a generic
+   loading spinner. stroke-dasharray sum is 18, so a -36 (2x) dashoffset
+   travel per cycle loops seamlessly with no visible seam/jump. */
+.halyard-sync-ribbon-syncing svg .halyard-sync-icon-rope {
+	stroke-dasharray: 10 8;
+	animation: halyard-sync-flow 0.9s linear infinite;
+}
+
+@keyframes halyard-sync-flow {
+	to {
+		stroke-dashoffset: -36;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.halyard-sync-ribbon-syncing svg .halyard-sync-icon-rope {
+		animation: none;
+	}
+}
+
+/* Sync history list (ui/modals.ts SyncHistoryModal). */
+.halyard-sync-history-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.halyard-sync-history-list li {
+	padding: 0.4em 0;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.halyard-sync-history-message {
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+	margin-top: 0.2em;
+}
+
+/* Right-sidebar sync panel (ui/sync-view.ts). */
+.halyard-sync-view {
+	padding: 0 0.5em;
+}
+
+.halyard-sync-view-detail {
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+}
+
+.halyard-sync-view-next-sync {
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+	margin-top: -0.5em;
+}
+
+/* Read-only active-note history section (ui/sync-view.ts). */
+.halyard-active-note-git-details {
+	margin: 1em 0;
+	padding: 0.7em 0;
+	border-top: 1px solid var(--background-modifier-border);
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.halyard-active-note-git-details h4 {
+	margin-top: 0;
+}
+
+.halyard-active-note-git-path,
+.halyard-active-note-git-message,
+.halyard-active-note-git-commit-message {
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+	overflow-wrap: anywhere;
+}
+
+.halyard-active-note-git-commit-message {
+	font-style: italic;
+}
+
+/* The git-crypt key-file picker is driven by a button, never shown directly
+   (ui/modals.ts's attachGitCryptKeyImportButton). */
+.halyard-sync-hidden-file-input {
+	display: none;
+}

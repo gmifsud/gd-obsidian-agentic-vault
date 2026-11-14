@@ -1,5 +1,5 @@
 {
-  "name": "agentic-os-root",
+  "name": "gd-obsidian-agentic-vault",
   "private": true,
   "scripts": {
     "dev": "cd frontend && npm run dev",
@@ -10,5 +10,6 @@
     "backend:status": "cd backend && python vault_manager.py vault-status",
     "backend:validate": "cd backend && python vault_manager.py validate",
     "backend:templates": "cd backend && python vault_manager.py list-templates"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

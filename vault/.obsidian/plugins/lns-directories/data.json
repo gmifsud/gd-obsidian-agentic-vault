@@ -1,0 +1,80 @@
+{
+  "links": [
+    {
+      "id": "5bfbe732-f5b5-4ce0-b204-a0635f69eccc",
+      "source": "C:\\Users\\grego\\Documents\\Obsidian\\Knowledge\\Work\\Projects\\QiSL.Practice.Notaries",
+      "linkPath": "C:\\Repos\\gd-obsidian-agentic-vault\\vault\\10_Repositories\\QiSL.Platform.Licensing\\QiSL.Practice.Notaries",
+      "kind": "directory",
+      "createdAt": 1782211941451
+    },
+    {
+      "id": "31903e5e-1c98-4a53-a563-188b82c74454",
+      "source": "C:\\Repos\\LLM\\Claude",
+      "linkPath": "C:\\Repos\\gd-obsidian-agentic-vault\\vault\\10_Repositories\\LLM\\Claude",
+      "kind": "directory",
+      "createdAt": 1782471756993
+    },
+    {
+      "id": "b219071e-b9c2-40ff-b163-a84a6da467d9",
+      "source": "C:\\Repos\\gd-obsidian-agentic-vault\\README.md",
+      "linkPath": "C:\\Repos\\gd-obsidian-agentic-vault\\vault\\10_Repositories\\Obsidian.Vault.Architect\\README.md",
+      "kind": "file",
+      "createdAt": 1782554093491
+    },
+    {
+      "id": "2b6514c5-ea61-49eb-b846-d63c0108c83f",
+      "source": "C:\\Users\\grego\\Documents\\Obsidian\\Knowledge\\Engineering",
+      "linkPath": "C:\\Repos\\gd-obsidian-agentic-vault\\vault\\25_Knowledge_Base\\Engineering",
+      "kind": "directory",
+      "createdAt": 1782664287527
+    },
+    {
+      "id": "4027f710-94cb-4e1c-b341-171d3a333f85",
+      "source": "C:\\Repos\\Backend\\.obsidian\\docs",
+      "linkPath": "C:\\Repos\\gd-obsidian-agentic-vault\\vault\\10_Repositories\\QiSL.Platform.Backend\\docs",
+      "kind": "directory",
+      "createdAt": 1782908856349
+    },
+    {
+      "id": "0ce294fa-0db8-4bda-bff3-71107acbfeba",
+      "source": "C:\\Users\\grego\\Documents\\Obsidian\\Knowledge\\Work\\Projects\\External Services",
+      "linkPath": "C:\\Repos\\gd-obsidian-agentic-vault\\vault\\10_Repositories\\QiSL.Platform.Backend\\External Services",
+      "kind": "directory",
+      "createdAt": 1784638854841
+    },
+    {
+      "id": "2f579be1-adaa-4f75-9dd4-715b2e9dbcdc",
+      "source": "C:\\Repos\\Frontend.worktrees\\fix\\15935-data-grid-pr-cleanup\\docs",
+      "linkPath": "C:\\Repos\\gd-obsidian-agentic-vault\\vault\\10_Repositories\\QiSL.Platform.Frontend\\15935-data-grid-pr-cleanup\\docs",
+      "kind": "directory",
+      "createdAt": 1784787868175
+    },
+    {
+      "id": "5dc6b244-90a4-48c6-b06a-18a4bb011284",
+      "source": "C:\\Repos\\Frontend\\docs",
+      "linkPath": "C:\\Repos\\gd-obsidian-agentic-vault\\vault\\10_Repositories\\QiSL.Platform.Frontend\\MainWorktree\\docs",
+      "kind": "directory",
+      "createdAt": 1784788818399
+    },
+    {
+      "id": "a6449419-f797-4d59-9256-b77b3e91d4ae",
+      "source": "D:\\Users\\grego\\Documents\\Obsidian\\Knowledge\\Work\\Projects\\ISL.Azure.Licensing",
+      "linkPath": "D:\\Repos\\gd-obsidian-agentic-vault\\vault\\10_Repositories\\ISL.Azure.Licensing",
+      "kind": "directory",
+      "createdAt": 1789712218638
+    },
+    {
+      "id": "6d1a3555-8b15-4f29-b98e-0bf464deb705",
+      "source": "D:\\Users\\grego\\Documents\\Obsidian\\Knowledge\\Work\\Projects",
+      "linkPath": "D:\\Repos\\gd-obsidian-agentic-vault\\vault\\10_Repositories\\Projects",
+      "kind": "directory",
+      "createdAt": 1790314569106
+    }
+  ],
+  "locale": "auto",
+  "showExplorerMarkers": true,
+  "lastSourcePaths": {
+    "directory": "D:\\Users\\grego\\Documents\\Obsidian\\Knowledge\\Work\\Projects",
+    "file": "C:\\Repos\\gd-obsidian-agentic-vault\\README.md"
+  }
+}

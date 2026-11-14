@@ -1,29 +1,63 @@
 import os
+import sys
+import io
 import re
 import json
 import yaml
+from functools import lru_cache
 from pathlib import Path
 from datetime import datetime
 import typer
+
+from vault_layout import (
+    MOC_DIRECTORY,
+    ZONE_ASSETS,
+    ZONE_LEFT,
+    ZONE_RIGHT,
+    VaultLayout,
+    VaultLayoutError,
+    load_engine_vault,
+)
+
+# Force UTF-8 encoding for standard output/error on Windows to prevent UnicodeEncodeError
+if sys.platform.startswith("win"):
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 from rich.console import Console
 from rich.table import Table
 
 app = typer.Typer(help="Vault Manager: Manipulate the Obsidian Blueprint programmatically")
 console = Console()
+# Status lines go to stderr so that stdout stays parseable (e.g. the JSON from vault-status).
+err_console = Console(stderr=True)
 
-# The vault directory is located one level up from the backend directory
-VAULT_DIR = Path(__file__).resolve().parent.parent / "vault"
+REPO_ROOT = Path(__file__).resolve().parent.parent
+BLUEPRINT_VAULT = REPO_ROOT / "vault"
+TEMPLATES_DIRECTORY = "80_Templates"
+# Prose files inside a Vault whose directory lists must agree with the layout.
+VAULT_PROSE_FILES = ["SOUL.md", "AGENT_INSTRUCTIONS.md"]
+# Prose file beside the Blueprint that describes it; checked only for the Blueprint.
+BLUEPRINT_PROSE_FILE = REPO_ROOT / ".cursorrules"
 
-# --- Zone definitions ---
-LEFT_HEMISPHERE_DIRS = ["01_Journal", "02_Human_Thoughts"]
-RIGHT_HEMISPHERE_DIRS = [
-    "00_MOCs", "10_Repositories", "15_Prototype_Designs", "20_DevOps",
-    "25_Knowledge_Base", "30_Git", "40_Agent_Skills", "50_Databases",
-    "60_Canvas_Maps", "80_Templates",
-]
-ARCHIVE_DIRS = ["90_Assets"]
-ALL_EXPECTED_DIRS = LEFT_HEMISPHERE_DIRS + RIGHT_HEMISPHERE_DIRS + ARCHIVE_DIRS
-SYSTEM_FILES = ["CLAUDE.md", "SOUL.md", "MEMORY.md", "USER.md", "HEARTBEAT.md"]
+
+@lru_cache(maxsize=1)
+def _vault() -> VaultLayout:
+    """Load the Vault the Engine acts on, announce its root, or exit if it has no valid layout."""
+    try:
+        layout = load_engine_vault()
+    except VaultLayoutError as exc:
+        err_console.print(str(exc), style="bold red", markup=False)
+        raise typer.Exit(code=1)
+    err_console.print(f"Vault root: {layout.root}", markup=False)
+    return layout
+
+
+def _require_write_permission(layout: VaultLayout, path: Path | str) -> None:
+    """Exit with an explanation unless an agent may write ``path``."""
+    decision = layout.may_agent_write(path)
+    if not decision.allowed:
+        err_console.print(f"Refused to write {path}: {decision.reason}.", style="bold red", markup=False)
+        raise typer.Exit(code=1)
 
 
 def _count_files_in_dir(dir_path: Path) -> int:
@@ -59,7 +93,7 @@ def _resolve_wikilink(link_target: str, vault_dir: Path) -> bool:
 
 def _validate_mocs(vault_dir: Path) -> list[dict]:
     """Validate all MOC files: extract wikilinks and check if they resolve."""
-    moc_dir = vault_dir / "00_MOCs"
+    moc_dir = vault_dir / MOC_DIRECTORY
     results = []
     if not moc_dir.exists():
         return results
@@ -99,7 +133,9 @@ def _get_last_rolling_log_timestamp(vault_dir: Path) -> str | None:
 @app.command()
 def create_folder(path: str):
     """Programmatically create a new folder structurally inside the vault."""
-    target_path = VAULT_DIR / path
+    layout = _vault()
+    _require_write_permission(layout, path)
+    target_path = layout.root / path
     if target_path.exists():
         console.print(f"[bold yellow]Folder already exists: {target_path}[/bold yellow]")
         return
@@ -124,13 +160,15 @@ def inject_template(
     variables: list[str] = typer.Option(None, "--var", help="Variables to hydrate in template, e.g. key=value")
 ):
     """Inject an AI YAML template into a new markdown file."""
-    template_path = VAULT_DIR / "80_Templates" / template_name
+    layout = _vault()
+    _require_write_permission(layout, target_file)
+    template_path = layout.root / TEMPLATES_DIRECTORY / template_name
     
     if not template_path.exists():
         console.print(f"[bold red]Template not found: {template_path}[/bold red]")
         raise typer.Exit(code=1)
         
-    output_path = VAULT_DIR / target_file
+    output_path = layout.root / target_file
     if output_path.exists():
         console.print(f"[bold yellow]Target file already exists: {output_path}[/bold yellow]")
         raise typer.Exit(code=1)
@@ -204,7 +242,9 @@ def inject_template(
 @app.command()
 def update_moc(moc_filename: str, title: str, doc_reference: str):
     """Update a Map of Content (MOC) with a new interlinked entry."""
-    full_path = VAULT_DIR / "00_MOCs" / moc_filename
+    layout = _vault()
+    full_path = layout.root / MOC_DIRECTORY / moc_filename
+    _require_write_permission(layout, full_path)
     
     if not full_path.exists():
         console.print(f"[bold red]MOC not found: {full_path}[/bold red]")
@@ -227,55 +267,57 @@ def update_moc(moc_filename: str, title: str, doc_reference: str):
 @app.command()
 def auto_update_moc(file_path: str):
     """Automatically route and append a new file reference to the correct MOC."""
+    layout = _vault()
     target_path = Path(file_path).resolve()
-    # If file_path is relative, resolve it relative to VAULT_DIR or CWD
+    # If file_path is relative, resolve it relative to the Vault root or CWD
     if not target_path.exists():
-        # Try relative to VAULT_DIR
-        target_path = (VAULT_DIR / file_path).resolve()
+        # Try relative to the Vault root
+        target_path = (layout.root / file_path).resolve()
         if not target_path.exists():
-            # Try relative to VAULT_DIR's parent (root)
-            target_path = (VAULT_DIR.parent / file_path).resolve()
+            # Try relative to the Vault root's parent
+            target_path = (layout.root.parent / file_path).resolve()
             if not target_path.exists():
                 console.print(f"[bold red]File not found: {file_path}[/bold red]")
                 raise typer.Exit(code=1)
 
-    with open(target_path, "r", encoding="utf-8") as f:
-        content = f.read()
+    # The Vault layout says which MOC indexes each directory.
+    moc_path = layout.moc_for(target_path)
+    if moc_path is None:
+        console.print(f"[yellow]The Vault layout names no MOC for {target_path}. Skipping MOC update.[/yellow]")
+        return
+    _require_write_permission(layout, moc_path)
+    directory = target_path.relative_to(layout.root).parts[0]
 
-    file_name = target_path.stem
-    dir_name = target_path.parent.name
+    # Notes are linked by name; other files (e.g. assets) keep their extension.
+    is_note = target_path.suffix == ".md"
+    file_name = target_path.stem if is_note else target_path.name
 
     # Extract YAML frontmatter
     metadata = {}
-    if content.startswith("---\n"):
-        parts = content.split("---\n", 2)
-        if len(parts) >= 3:
-            try:
-                metadata = yaml.safe_load(parts[1]) or {}
-            except Exception:
-                pass
+    if is_note:
+        content = target_path.read_text(encoding="utf-8")
+        if content.startswith("---\n"):
+            parts = content.split("---\n", 2)
+            if len(parts) >= 3:
+                try:
+                    metadata = yaml.safe_load(parts[1]) or {}
+                except Exception:
+                    pass
 
-    moc_path = None
     entry = f"- [[{file_name}]]"
 
-    # Route based on parent folder name
-    if "10_Repositories" in target_path.parts or dir_name == "10_Repositories":
-        moc_path = VAULT_DIR / "00_MOCs" / "Repositories_MOC.md"
+    # Entry details depend on the directory
+    if directory == "10_Repositories":
         tech_stack = metadata.get("tech_stack", "[]")
         status = metadata.get("status", "unknown")
         entry += f" | tech_stack: {tech_stack} | status: {status}"
-    elif "20_DevOps" in target_path.parts or dir_name == "20_DevOps":
-        moc_path = VAULT_DIR / "00_MOCs" / "DevOps_MOC.md"
+    elif directory == "20_DevOps":
         env = metadata.get("environment", "[]")
         tech_stack = metadata.get("tech_stack", "[]")
         entry += f" | environment: {env} | tech_stack: {tech_stack}"
-    elif "30_Git" in target_path.parts or dir_name == "30_Git":
-        moc_path = VAULT_DIR / "00_MOCs" / "Git_MOC.md"
+    elif directory == "30_Git":
         workflow_name = metadata.get("workflow_name", "unknown")
         entry += f" | workflow_name: {workflow_name}"
-    else:
-        console.print(f"[yellow]No matching MOC for directory: {dir_name}. Skipping MOC update.[/yellow]")
-        return
 
     if not moc_path.exists():
         console.print(f"[bold red]MOC file not found: {moc_path}[/bold red]")
@@ -307,42 +349,47 @@ def auto_update_moc(file_path: str):
 @app.command()
 def vault_status():
     """Produce a JSON-formatted report of vault health."""
-    report: dict = {}
+    layout = _vault()
+    report: dict = {"vault_root": str(layout.root)}
 
     # --- File counts per zone ---
-    zone_counts = {
-        "left_hemisphere": {},
-        "right_hemisphere": {},
-        "archive": {},
+    zone_names = {
+        ZONE_LEFT: "left_hemisphere",
+        ZONE_RIGHT: "right_hemisphere",
+        ZONE_ASSETS: "assets",
     }
-    for d in LEFT_HEMISPHERE_DIRS:
-        zone_counts["left_hemisphere"][d] = _count_files_in_dir(VAULT_DIR / d)
-    for d in RIGHT_HEMISPHERE_DIRS:
-        zone_counts["right_hemisphere"][d] = _count_files_in_dir(VAULT_DIR / d)
-    for d in ARCHIVE_DIRS:
-        zone_counts["archive"][d] = _count_files_in_dir(VAULT_DIR / d)
-
-    report["zone_file_counts"] = zone_counts
+    report["zone_file_counts"] = {
+        name: {d: _count_files_in_dir(layout.root / d) for d in layout.directories_in(zone)}
+        for zone, name in zone_names.items()
+    }
 
     # --- System files ---
-    sys_file_status = {}
-    for sf in SYSTEM_FILES:
-        sys_file_status[sf] = (VAULT_DIR / sf).exists()
-    report["system_files"] = sys_file_status
+    report["system_files"] = {
+        sf: (layout.root / sf).exists() for sf in layout.required_system_files
+    }
 
     # --- Last rolling log timestamp ---
-    report["last_rolling_log_timestamp"] = _get_last_rolling_log_timestamp(VAULT_DIR)
+    report["last_rolling_log_timestamp"] = _get_last_rolling_log_timestamp(layout.root)
 
     # --- MOC integrity ---
-    report["moc_integrity"] = _validate_mocs(VAULT_DIR)
+    report["moc_integrity"] = _validate_mocs(layout.root)
 
     console.print_json(json.dumps(report, indent=2))
 
 
 @app.command()
+def may_write(path: str):
+    """Say whether an agent may write PATH. Exit 0 if allowed, 1 if not."""
+    decision = _vault().may_agent_write(path)
+    verdict = "ALLOWED" if decision.allowed else "REFUSED"
+    console.print(f"{verdict}: {decision.reason}", markup=False)
+    raise typer.Exit(code=0 if decision.allowed else 1)
+
+
+@app.command()
 def list_templates():
     """List available templates from vault/80_Templates/ with their YAML frontmatter fields."""
-    templates_dir = VAULT_DIR / "80_Templates"
+    templates_dir = _vault().root / TEMPLATES_DIRECTORY
     if not templates_dir.exists():
         console.print("[bold red]80_Templates directory not found![/bold red]")
         raise typer.Exit(code=1)
@@ -386,48 +433,44 @@ def list_templates():
 @app.command()
 def validate():
     """Check architectural purity of the vault. Exit 0 if valid, 1 if issues found."""
-    issues: list[str] = []
+    layout = _vault()
     warnings: list[str] = []
 
-    # 1. Required directories
-    for d in ALL_EXPECTED_DIRS:
-        if not (VAULT_DIR / d).exists():
-            issues.append(f"Missing required directory: {d}/")
+    # 1. Layout checks: the Vault on disk, and the prose agents read, against the Vault layout
+    layout_issues = layout.problems()
+    prose_files = [layout.root / name for name in VAULT_PROSE_FILES]
+    if layout.root == BLUEPRINT_VAULT.resolve():
+        prose_files.append(BLUEPRINT_PROSE_FILE)
+    for prose_file in prose_files:
+        if prose_file.is_file():
+            layout_issues.extend(layout.prose_problems(prose_file))
 
-    # 2. System files
-    for sf in SYSTEM_FILES:
-        if not (VAULT_DIR / sf).exists():
-            issues.append(f"Missing system file: {sf}")
-
-    # 3. Unexpected .md files at vault root
-    expected_root_md = set(SYSTEM_FILES + ["README.md", "AGENT_INSTRUCTIONS.md"])
-    for f in VAULT_DIR.glob("*.md"):
-        if f.name not in expected_root_md:
-            issues.append(f"Unexpected file at vault root: {f.name}")
-
-    # 4. Empty hemisphere directories (only README.md or nothing)
-    for d in LEFT_HEMISPHERE_DIRS + RIGHT_HEMISPHERE_DIRS:
-        dir_path = VAULT_DIR / d
+    # 2. Empty hemisphere directories (only README.md or nothing)
+    for d in layout.directories_in(ZONE_LEFT) + layout.directories_in(ZONE_RIGHT):
+        dir_path = layout.root / d
         if dir_path.exists():
             md_files = [f for f in dir_path.rglob("*.md") if f.name != "README.md"]
             if not md_files:
                 warnings.append(f"Empty hemisphere directory: {d}/ (contains only README.md or is empty)")
 
-    # 5. MOC link validation
-    moc_results = _validate_mocs(VAULT_DIR)
-    for moc in moc_results:
-        if moc["broken_links"]:
-            for bl in moc["broken_links"]:
-                issues.append(f"Broken wikilink in {moc['moc']}: [[{bl}]]")
+    # 3. MOC link checks
+    moc_results = _validate_mocs(layout.root)
+    link_issues = [
+        f"Broken wikilink in {moc['moc']}: [[{bl}]]"
+        for moc in moc_results
+        for bl in moc["broken_links"]
+    ]
+    issues = layout_issues + link_issues
 
-    # --- Output ---
-    if issues:
-        console.print("[bold red]FAIL: Vault validation FAILED[/bold red]")
+    # --- Output: one section per kind of check, each with its own verdict ---
+    for title, section_issues in (("Layout checks", layout_issues), ("MOC link checks", link_issues)):
+        if section_issues:
+            console.print(f"[bold red]FAIL: {title}[/bold red]")
+            for issue in section_issues:
+                console.print(f"  X {issue}", style="red", markup=False)
+        else:
+            console.print(f"[bold green]PASS: {title}[/bold green]")
         console.print()
-        for issue in issues:
-            console.print(f"  [red]X[/red] {issue}")
-    else:
-        console.print("[bold green]PASS: All structural checks passed.[/bold green]")
 
     if warnings:
         console.print()
