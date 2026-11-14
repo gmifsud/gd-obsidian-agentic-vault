@@ -455,7 +455,8 @@ The MOC entries for the Left Hemisphere directories and `00_MOCs` were not discu
 | Notes with unparseable frontmatter | Server made tolerant (section 8.5); `/api/files` and `/api/hemispheres` load on the Blueprint. The 19 notes themselves are not corrected. |
 | `API_BASE` in `vault.ts` | Done (section 8.5); `npm run lint` passes. Session backup itself has not been exercised. |
 | Dot-directories nested inside a declared directory | Decided and done (section 8.6): ignored at any depth, by the Control Panel and the Engine. |
-| Control Panel in a browser | Not opened. Only the API was exercised. |
+| Control Panel in a browser | First render of seven screens checked by screenshot (section 8.7). Nothing was clicked; Sessions and Orchestrator were not opened. |
+| Static bundle ignores the layout | Found in section 8.7: a local `npm run build` bundles notes from `copilot/` and `Connections/`. Not decided. |
 | Editor hook for direct agent edits | Deferred until the build has been tested (decision 8) |
 | The ten broken MOC links | Left for candidate 4 (decision 14) |
 | Analysis of the Knowledge Vault | Separate piece of work (decision 15) |
@@ -529,7 +530,7 @@ Its practical effect is that the Control Panel's file list and Hemispheres page 
 
 ### 8.5 Follow-up after the build
 
-Three open items were closed. None of this is committed.
+Three open items were closed. This, section 8.6 and the code changes in section 8.7 were committed as `aed99a0`.
 
 **Notes with unparseable frontmatter.** The server remedy was chosen. A new module, `frontend/note.js`, has one function, `parseNote`, and all six places in `frontend/server.js` that parsed a note now go through it. A note whose frontmatter is rejected is still served, with empty frontmatter and its full text as the body; this differs from the "skip it" wording in 8.4, because a note that vanishes from the Control Panel is harder to notice than one shown without properties. The server logs a warning naming the note, and `/api/files` and `/api/file` add a `frontmatter_error` field to it. Nothing in the browser displays that field yet.
 
@@ -573,3 +574,29 @@ Not checked: the Control Panel in a browser, and session backup end to end.
 | `vault_manager.py validate` on the Blueprint | Layout checks: PASS. MOC link checks: FAIL on the ten known links, as before. |
 | `may-write 10_Repositories/x/.cursor/n.md` | Refused, exit 1. |
 | API smoke test: the Blueprint | `/api/files` 200 with no path containing a dot segment; `/api/tree` shows no dot entries; a note in a nested dot-directory requested on its own returns 403; `/api/hemispheres`, `/api/status`, `/api/mocs`, `/api/templates`, `/api/skills` all 200. |
+
+### 8.7 Browser check
+
+`npm run server` serves the built bundle in `frontend/dist`, which is ignored by git. The bundle on disk dated from 07/03/2026, so it predated every browser-side change in this document and had to be rebuilt.
+
+**The build was broken.** `npm run build` failed on a note under a directory named `#1837-SettingsViewErrors`: the static fallback in `frontend/src/lib/vault.ts` globs every Markdown file in the Vault into the bundle, and the bundler reads `#` as the start of a URL fragment. The glob now leaves out paths containing `#`. This touches the static fallback that decision 9 left alone, but only by exclusion. The build then succeeds: 2,878 files, 90 MB.
+
+**Log noise.** The server now warns about a note with invalid frontmatter once per server run, or again if the reason changes, instead of on every request. Seven page loads produced 14 warnings in total.
+
+**What was looked at.** Headless Chrome screenshots of the first render, against the rebuilt bundle and the current server, on the Blueprint:
+
+| Screen | Seen |
+|---|---|
+| Dashboard | 3,041 notes; Left Hemisphere 2 files READ-ONLY; Right Hemisphere 3,031 files READ / WRITE with its ten directories; System 7 files. |
+| Hemispheres | Tabs for Left Hemisphere (2), Right Hemisphere (3,031) and Assets (1); directory groups listed. |
+| Templates, Agent Skills, System Files | Rendered with content. |
+| A note (`Git_MOC`) | Rendered, tagged RIGHT HEMISPHERE. |
+| A Vault with no layout | The error screen, "This Vault has no usable layout", with the message naming the missing file. |
+
+Nothing was clicked: the Left Hemisphere and Assets tabs, the Vault Explorer, Sessions and Orchestrator were not opened, and session backup was not run. The first render took 15 to 30 seconds because `/api/files` sends the full text of every note.
+
+**Found, not fixed.**
+
+- The static bundle does not follow the layout. A local build includes 31 notes from `copilot/`, one from `Connections/` and the Left Hemisphere notes, and the server serves those bundle files to anyone who can reach its port. The published site is not affected in the same way, because it is built from tracked files only and both directories are untracked. Dot-directories are already left out by the bundler.
+- The Dashboard has no card for the Assets Zone; its one file is counted in the total only.
+- Cosmetic, and older than this work: system files on the Dashboard carry a trailing slash (`CLAUDE.md/`); the Dashboard counts five templates where the Templates page shows six cards; a link written as `[[target|label]]` renders as `target|label`.
