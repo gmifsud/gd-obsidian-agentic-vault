@@ -3,10 +3,10 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import matter from 'gray-matter';
 import { exec } from 'child_process';
 import sessionsRouter from './sessions.js';
-import { readVaultLayout, VaultLayoutError } from './vaultLayout.js';
+import { readVaultLayout, VaultLayoutError, isHiddenEntry } from './vaultLayout.js';
+import { parseNote } from './note.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,8 +49,8 @@ app.get('/api/layout', (req, res) => {
 });
 
 // Markdown files the Control Panel may read: those at the Vault root and those
-// inside directories the layout declares. Unmanaged, undeclared and
-// dot-directories are never read.
+// inside directories the layout declares. Unmanaged and undeclared directories
+// are never read, nor is a dot-directory or dot-file at any depth.
 function vaultMarkdownFiles(layout) {
   const rootFiles = fs.readdirSync(vaultPath)
     .filter(name => name.endsWith('.md') && fs.statSync(path.join(vaultPath, name)).isFile())
@@ -60,12 +60,21 @@ function vaultMarkdownFiles(layout) {
   return [...rootFiles, ...directoryFiles];
 }
 
+// Warn about a note once per server run, or again if its problem changes,
+// rather than on every request that reads it.
+const warned = new Map();
+function warnOnce(key, message) {
+  if (warned.get(key) === message) return;
+  warned.set(key, message);
+  console.warn(`[Vault Server] ${message}`);
+}
+
 // Helper function to recursively retrieve all markdown files
 function walkDir(dir, fileList = []) {
   if (!fs.existsSync(dir)) return fileList;
   const files = fs.readdirSync(dir);
   for (const file of files) {
-    if (file === 'node_modules' || file === '.obsidian' || file === '.git' || file === '.generated') {
+    if (file === 'node_modules' || isHiddenEntry(file)) {
       continue;
     }
     const filePath = path.join(dir, file);
@@ -87,19 +96,24 @@ app.get('/api/files', (req, res) => {
 
     for (const fpath of mdFiles) {
       const rawContent = fs.readFileSync(fpath, 'utf-8');
-      const { data, content } = matter(rawContent);
+      const { data, content, frontmatterError } = parseNote(rawContent);
       
       const relativePath = path.relative(vaultPath, fpath).replace(/\\/g, '/');
       const name = path.basename(fpath);
       const basename = name.replace(/\.md$/, '');
 
-      files.push({
+      const file = {
         path: relativePath,
         name,
         basename,
         content,
         frontmatter: data
-      });
+      };
+      if (frontmatterError) {
+        warnOnce(relativePath, `Invalid frontmatter in ${relativePath}: ${frontmatterError}`);
+        file.frontmatter_error = frontmatterError;
+      }
+      files.push(file);
     }
 
     res.json(files);
@@ -115,7 +129,7 @@ function buildTree(dir, rootDir, layout) {
   if (!fs.existsSync(dir)) return result;
   const entries = fs.readdirSync(dir);
   for (const entry of entries) {
-    if (entry === 'node_modules' || entry === '.obsidian' || entry === '.git' || entry === '.generated') {
+    if (entry === 'node_modules' || isHiddenEntry(entry)) {
       continue;
     }
     const fullPath = path.join(dir, entry);
@@ -237,7 +251,7 @@ app.get('/api/file/:path(*)', (req, res) => {
     }
 
     const rawContent = fs.readFileSync(fullPath, 'utf-8');
-    const { data, content } = matter(rawContent);
+    const { data, content, frontmatterError } = parseNote(rawContent);
     const name = path.basename(fullPath);
     const basename = name.replace(/\.md$/, '');
     const relativePath = path.relative(vaultPath, fullPath).replace(/\\/g, '/');
@@ -249,7 +263,8 @@ app.get('/api/file/:path(*)', (req, res) => {
       basename,
       content,
       frontmatter: data,
-      hemisphere
+      hemisphere,
+      ...(frontmatterError ? { frontmatter_error: frontmatterError } : {})
     });
   } catch (error) {
     console.error('[Vault Server] Error reading file:', error);
@@ -276,7 +291,7 @@ app.get('/api/hemispheres', (req, res) => {
 
     for (const fpath of mdFiles) {
       const rawContent = fs.readFileSync(fpath, 'utf-8');
-      const { data } = matter(rawContent);
+      const { data } = parseNote(rawContent);
       const relativePath = path.relative(vaultPath, fpath).replace(/\\/g, '/');
       const topFolder = relativePath.split('/')[0];
       const zone = layout.zoneOf(relativePath);
@@ -310,7 +325,7 @@ app.get('/api/mocs', (req, res) => {
 
     for (const fpath of mdFiles) {
       const rawContent = fs.readFileSync(fpath, 'utf-8');
-      const { content } = matter(rawContent);
+      const { content } = parseNote(rawContent);
       const name = path.basename(fpath);
       const basename = name.replace(/\.md$/, '');
 
@@ -353,7 +368,7 @@ app.get('/api/templates', (req, res) => {
 
     for (const fpath of mdFiles) {
       const rawContent = fs.readFileSync(fpath, 'utf-8');
-      const { data } = matter(rawContent);
+      const { data } = parseNote(rawContent);
       const name = path.basename(fpath);
       const basename = name.replace(/\.md$/, '');
 
@@ -394,7 +409,7 @@ app.get('/api/skills', (req, res) => {
       const relativePath = path.relative(vaultPath, skillFile).replace(/\\/g, '/');
 
       // Extract description: first non-empty line after frontmatter, or first heading
-      const { content } = matter(rawContent);
+      const { content } = parseNote(rawContent);
       const lines = content.split('\n').filter(l => l.trim().length > 0);
       let description = lines.length > 0 ? lines[0].replace(/^#+\s*/, '').trim() : '';
 

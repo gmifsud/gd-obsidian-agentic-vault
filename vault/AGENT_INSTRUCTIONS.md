@@ -11,7 +11,7 @@ Different AI agents can be leveraged within this vault based on their strengths:
 
 ### 🧠 Left Hemisphere (HUMAN DOMAIN - READ ONLY)
 These directories contain the human's raw thoughts, daily logs, and unstructured ideas. 
-**RULE:** You may READ these folders for context, but you MUST NEVER WRITE to or modify them.
+**RULE:** You may READ these folders for context, but you MUST NEVER WRITE to or modify them. The one exception is the `/weekly-review` protocol, which writes into `01_Journal/Reviews/`.
 - `01_Journal/`
 - `02_Human_Thoughts/`
 
@@ -42,7 +42,7 @@ These directories contain structured knowledge, SOPs, and documentation.
 3. Generate a new, strictly formatted Markdown file.
 4. Save the file in the correct Right Hemisphere folder following naming conventions (e.g., `10_Repositories/Repo - [Name].md`).
 5. **MOC Update Protocol**: You MUST dynamically update the corresponding MOC.
-   - **Automated**: Run `node scripts/update_moc.js <path/to/new/file.md>`
+   - **Automated**: Run `python backend/vault_manager.py auto-update-moc <path/to/new/file.md>`
    - **Manual**: Open the relevant MOC (e.g., `00_MOCs/Repositories_MOC.md`), locate the `## Static Agent Index` section, and append: `- [[File Name]] | key: value`
 
 ### Command: `/today`

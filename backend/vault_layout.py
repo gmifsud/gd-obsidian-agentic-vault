@@ -200,8 +200,9 @@ class VaultLayout:
         if not parts:
             return WriteDecision(False, "the Vault root itself is not a writable path")
         top = parts[0]
-        if top.startswith("."):
-            return WriteDecision(False, f"'{top}' is a dot-directory, which the Engine never writes to")
+        hidden = next((part for part in parts if part.startswith(".")), None)
+        if hidden is not None:
+            return WriteDecision(False, f"'{hidden}' is a dot-directory or dot-file, which the Engine never writes to")
         if top in self.unmanaged:
             return WriteDecision(False, f"'{top}' is an unmanaged directory owned by another tool")
         if top in self._directories:

@@ -2,7 +2,7 @@
 
 This document records an architecture review of the repository and the design session that followed for the first candidate, the **Vault layout module**. It covers what was examined, every decision that was made, the options that were rejected and why, what was changed in the working tree, and what remains to be done.
 
-Status at the time of writing: **design agreed, build not started, nothing committed.**
+Status: **design agreed, Vault layout module built, tested and committed (`31be473`).** Sections 1 to 7 were written before the build and describe the design; section 8 records what was built and how it was checked.
 
 Domain terms used here (Vault, Zone, Hemisphere, Assets, Unmanaged directory, MOC, System file, Vault layout) are defined in [`CONTEXT.md`](../CONTEXT.md).
 
@@ -15,6 +15,7 @@ Domain terms used here (Vault, Zone, Hemisphere, Assets, Unmanaged directory, MO
 5. [Side question: storing a session in the Vault](#5-side-question-storing-a-session-in-the-vault)
 6. [What the build will consist of](#6-what-the-build-will-consist-of)
 7. [Open items](#7-open-items)
+8. [Build outcome](#8-build-outcome)
 
 ---
 
@@ -31,7 +32,9 @@ flowchart TD
   E --> H[backend/venv untracked and rebuilt]
   E --> I[Design agreed]
   I --> J[This document]
-  J --> K[Build: not started]
+  J --> K[Build in five steps, with tests]
+  K --> L[Smoke test of the Control Panel API]
+  L --> M[Committed as 31be473]
 ```
 
 | Step | What happened |
@@ -370,7 +373,7 @@ The hook will be re-evaluated after the build has been tested.
 
 ## 4. Changes made during the session
 
-Nothing below is committed.
+These were uncommitted when this section was written. The venv untracking was later committed as `0fb8ffe` and the rest with the build as `31be473`.
 
 | Change | Detail |
 |---|---|
@@ -446,12 +449,127 @@ The MOC entries for the Left Hemisphere directories and `00_MOCs` were not discu
 
 | Item | State |
 |---|---|
-| Go-ahead to start the build | Not yet given |
-| Whether to commit the venv untracking on its own first | Not yet answered |
-| `AGENT_INSTRUCTIONS.md` and the prose check | The restored file will fail the check until its directory lists are corrected. Proposed: correct only the lists, and leave the rest, including the dead `scripts/update_moc.js` reference, for a separate decision. Not yet confirmed. |
+| Go-ahead to start the build | Given; build complete (section 8) |
+| Whether to commit the venv untracking on its own first | Done: committed separately as `0fb8ffe` |
+| `AGENT_INSTRUCTIONS.md` and the prose check | Done (section 8.5): the `Reviews` exception is stated and the MOC command points at `vault_manager.py auto-update-moc`. |
+| Notes with unparseable frontmatter | Server made tolerant (section 8.5); `/api/files` and `/api/hemispheres` load on the Blueprint. The 19 notes themselves are not corrected. |
+| `API_BASE` in `vault.ts` | Done (section 8.5); `npm run lint` passes. Session backup itself has not been exercised. |
+| Dot-directories nested inside a declared directory | Decided and done (section 8.6): ignored at any depth, by the Control Panel and the Engine. |
+| Control Panel in a browser | Not opened. Only the API was exercised. |
 | Editor hook for direct agent edits | Deferred until the build has been tested (decision 8) |
 | The ten broken MOC links | Left for candidate 4 (decision 14) |
 | Analysis of the Knowledge Vault | Separate piece of work (decision 15) |
 | Pinning `requirements.txt` | Raised, not decided |
 | Troubleshooting note template | Suggested, not decided |
-| Candidates 2 to 7 and the defects in section 2.4 | Not started |
+| Candidates 2 to 7 and the defects in section 2.4 | Not started, apart from the path guard in `server.js:204`, which was fixed during the build |
+
+---
+
+## 8. Build outcome
+
+The build followed the order in section 6 and was committed as `31be473`.
+
+### 8.1 What was built
+
+| Area | Files | Result |
+|---|---|---|
+| Blueprint layout | `vault/vault.config.yaml` | The layout table from section 6, plus the unmanaged list and system files. |
+| Engine module | `backend/vault_layout.py` | Loads and validates the layout; answers Zone, write permission and MOC questions; compares the Vault on disk and the prose files with the layout. |
+| Engine commands | `backend/vault_manager.py`, `backend/query.py` | Every writing command asks the layout first. New `may-write <path>` command (exit 0 or 1). `validate` reports layout checks and MOC link checks separately. `auto-update-moc` routes from the layout, and now reaches `Assets_MOC.md`. The constant lists are deleted. |
+| Blueprint generator | `backend/architect_generator.py` | Builds from the Blueprint's layout and copies it into the new Vault. The hard-coded fallbacks are deleted. |
+| Control Panel reader | `frontend/vaultLayout.js` | Display facts only. Fails loudly. |
+| Control Panel server | `frontend/server.js` | New `GET /api/layout`. All Vault endpoints work from the layout. Unmanaged, undeclared and dot-directories are not read. |
+| Control Panel browser | `frontend/src/lib/vault.ts`, `App.tsx`, `DashboardPage.tsx`, `HemispherePage.tsx`, `HemisphereCard.tsx` | Directory lists deleted; Zones come from `/api/layout`. An error screen is shown when the server reports no usable layout. |
+| Prose | `.cursorrules`, `vault/SOUL.md`, `vault/AGENT_INSTRUCTIONS.md` | Directory lists corrected; all three pass the new check. |
+| Tests | `backend/tests/`, `frontend/vaultLayout.test.js`, `backend/requirements-dev.txt` | See 8.3. |
+
+### 8.2 Where the build differs from the design
+
+| Design | Built | Reason |
+|---|---|---|
+| Each Engine command prints the Vault root as its first line (decision 12) | Printed to stderr | Keeps stdout parseable, in particular the JSON from `vault-status`. |
+| Not discussed | A missing `01_Journal/Reviews` directory is not a validation failure | Git does not track empty directories, so a fresh clone would fail. The override is a permission, not a required directory. The generator still creates it. |
+| `validate` checks `.cursorrules`, `SOUL.md` and `AGENT_INSTRUCTIONS.md` (decision 7) | `.cursorrules` is checked only when the Vault is the repository's own Blueprint | That file lives outside the Vault and describes the Blueprint only. |
+| Not discussed | The Control Panel's "archive" key and "Archive" label became "assets" and "Assets"; the badge changed from IGNORE to READ / WRITE | Follows from decision 1. The API responses of `/api/status` and `/api/hemispheres` changed key accordingly. |
+| Not discussed | A relative `VAULT_PATH` is resolved against `frontend/` by the Engine | That is what the Control Panel does; decision 12 requires both to agree. |
+| Not discussed | The Engine loads the repository's `.env` files | Needed for the Engine to see the same `VAULT_PATH` as the Control Panel when run from a terminal. |
+| Out of scope | The path guard in the file endpoint of `server.js` was corrected | The layout check was being added to the same lines. A sibling directory such as `vault-backup` is now refused. |
+| `js-yaml` declared in `package.json` (decision 9) | Declared, and npm moved the installed version from 3.14.2 to 3.15.2 | Side effect of `npm install`. Checked: it did not change which notes parse (8.4). |
+
+### 8.3 How it was checked
+
+| Check | Result |
+|---|---|
+| `pytest backend/tests` | 51 passed. Covers loading and its loud failures, Zone lookup, write permission (override, system files, unmanaged, dot-directories, undeclared, paths escaping the Vault, a sibling directory sharing the Vault's name prefix), MOC lookup, on-disk problems, the prose check, Vault root resolution, the Blueprint's own layout, and generation into a temp directory. |
+| `npm test` in `frontend/` | 9 passed. Covers Zones, readability rules, what is sent to the browser, the loud failures, and the Blueprint's own layout. |
+| `vault_manager.py validate` on the Blueprint | Layout checks: PASS. MOC link checks: FAIL on the ten known links (decision 14). Exit code 1, as expected. |
+| Refused writes | `create-folder 01_Journal/Sneaky` and `inject-template ... ../escape.md` both exited 1 and created nothing. |
+| `may-write` | Correct for `01_Journal/x.md` (refused), `01_Journal/Reviews/r.md` (allowed), `10_Repositories/a.md` (allowed), `../x.md` (refused), `SOUL.md` (refused), `MEMORY.md` (allowed), `copilot/a.md` (refused). |
+| API smoke test: a freshly generated Vault with `copilot/`, an undeclared `Surprise/` and a dot-directory added | `/api/files` returned 36 files, none from those three directories. The tree showed only declared directories with their Zones. `/api/hemispheres` returned `left`, `right`, `assets`. File requests for the unmanaged directory, the undeclared directory, `../.env.example` and `../vault-backup/x.md` all returned 403. |
+| API smoke test: a Vault with no layout | Every Vault endpoint returned 500 with the "Vault layout missing" message naming the file. |
+| API smoke test: the Blueprint | `/api/layout`, `/api/status`, `/api/tree`, `/api/system-files` and the file endpoint behaved correctly. `/api/files` and `/api/hemispheres` returned 500; see 8.4. |
+| `npm run lint` | Fails on one error, the `API_BASE` defect listed in section 2.4. No new errors. |
+
+Not checked: the Control Panel was not opened in a browser, so the pages themselves and the new error screen have not been seen rendering.
+
+### 8.4 Defect found during the smoke test
+
+On the Blueprint, `/api/files` and `/api/hemispheres` return 500. Six notes under `10_Repositories/` have frontmatter that the YAML parser rejects, and the server abandons the whole response when one note fails:
+
+- `10_Repositories/ISL.Azure.Licensing/Repo/ISL.Azure.Licensing/docs/architecture/04-authentication-flows.md`
+- `10_Repositories/ISL.Azure.Licensing/Repo/ISL.Azure.Licensing/docs/architecture/05-apiconnectivity-library.md`
+- `10_Repositories/ISL.Azure.Licensing/Repo/ISL.Azure.Licensing/docs/architecture/08-security-architecture-review.md`
+- `10_Repositories/Projects/External Services/Containerisation/prd-platform-admin-portal.md`
+- `10_Repositories/Projects/ISL.Azure.Infrastructure/Repo/ISL.Azure.Infrastructure/docs/prd-runbook-orchestration.md`
+- `10_Repositories/Projects/QiSL.Platform/Frontend.Angular/Documentation/Repo/Reviews/15935-plt-components-data-grid-3.0.0.0001/R-01 - Review Data Grid Layout Feature.md`
+
+This was not caused by the build. The same six notes are rejected by `js-yaml` 3.14.2, the version installed before, and the endpoints read `10_Repositories/` before and after the change. It has not been fixed. Two remedies, which are not exclusive: correct the frontmatter of the six notes, or make the server skip a note it cannot parse and report it, which belongs with candidate 6 (the Vault reader).
+
+Its practical effect is that the Control Panel's file list and Hemispheres page do not load from the API for the Blueprint until one of those is done.
+
+### 8.5 Follow-up after the build
+
+Three open items were closed. None of this is committed.
+
+**Notes with unparseable frontmatter.** The server remedy was chosen. A new module, `frontend/note.js`, has one function, `parseNote`, and all six places in `frontend/server.js` that parsed a note now go through it. A note whose frontmatter is rejected is still served, with empty frontmatter and its full text as the body; this differs from the "skip it" wording in 8.4, because a note that vanishes from the Control Panel is harder to notice than one shown without properties. The server logs a warning naming the note, and `/api/files` and `/api/file` add a `frontmatter_error` field to it. Nothing in the browser displays that field yet.
+
+Two corrections to 8.4 came out of this:
+
+- The count is 19 notes, not six. The six are seven distinct texts (a `terminal.md` skill reference was missed) and several exist in more than one place: the Licensing documents under both `10_Repositories/ISL.Azure.Licensing/` and `10_Repositories/Projects/ISL.Azure.Licensing/`, `prd-runbook-orchestration.md` in five worktrees, and `terminal.md` under five tool directories.
+- The under-count had a cause worth recording. `gray-matter` caches by note text, and stores the entry before parsing it. A note that fails once is therefore returned on the next call as a note with no frontmatter and no error. `parseNote` bypasses that cache; a test pins this. It also means the server no longer holds every note's text in memory for its lifetime.
+
+**`AGENT_INSTRUCTIONS.md`.** No recommendation had been given for this item; the smallest edits consistent with decisions 5 and 10 were made. The Left Hemisphere rule now states the `/weekly-review` exception for `01_Journal/Reviews/`, and the automated MOC step is `python backend/vault_manager.py auto-update-moc <path>` in place of the missing `scripts/update_moc.js`. One mention of that script remains near the top of the file as an example of a tool name.
+
+**`API_BASE`.** No recommendation had been given for this item either. The session backup call in `frontend/src/lib/vault.ts` now uses the relative `/api/sessions/backup`, as every other call in that file does.
+
+| Check | Result |
+|---|---|
+| `npm test` in `frontend/` | 14 passed (9 layout, 5 note parsing). |
+| `npm run lint` | Passes. |
+| `pytest backend/tests` | 51 passed. |
+| `vault_manager.py validate` on the Blueprint | Layout checks: PASS, including the edited `AGENT_INSTRUCTIONS.md`. MOC link checks: FAIL on the ten known links, as before. |
+| API smoke test: the Blueprint | `/api/files` 200 with 7,887 notes, 19 flagged, the same 19 on a second request, none from unmanaged directories. `/api/hemispheres`, `/api/mocs`, `/api/templates`, `/api/skills`, `/api/status` all 200. A flagged note requested on its own carries its error. |
+
+Not checked: the Control Panel in a browser, and session backup end to end.
+
+### 8.6 Dot-directories at any depth
+
+**Question.** Decision 4 ignored dot-directories at the Vault root only. Should a dot-directory inside a declared directory be ignored too?
+
+**Decision.** Yes. They hold tool configuration and duplicated skill copies, not notes. The accepted cost is that anything deliberately kept in one no longer appears in the Control Panel.
+
+**What changed.** The rule is "a path segment that begins with a dot", so it covers dot-files as well as dot-directories.
+
+- Control Panel: `isHiddenEntry` in `frontend/vaultLayout.js` is used by `isReadable` and by both directory walks in `frontend/server.js`, replacing the fixed list of `.obsidian`, `.git` and `.generated`. `node_modules` is still skipped by name.
+- Engine: `may_agent_write` in `backend/vault_layout.py` refuses such a path at any depth, so the Engine cannot write a note the Control Panel would not show. This goes one step beyond the question as asked, which was about reading.
+
+**Effect on the Blueprint.** `/api/files` went from 7,887 notes to 3,041: 4,846 notes were inside nested dot-directories. Notes flagged for frontmatter went from 19 to 14 (the five `terminal.md` copies were in dot-directories).
+
+| Check | Result |
+|---|---|
+| `npm test` in `frontend/` | 14 passed. |
+| `npm run lint` | Passes. |
+| `pytest backend/tests` | 53 passed (two new cases). |
+| `vault_manager.py validate` on the Blueprint | Layout checks: PASS. MOC link checks: FAIL on the ten known links, as before. |
+| `may-write 10_Repositories/x/.cursor/n.md` | Refused, exit 1. |
+| API smoke test: the Blueprint | `/api/files` 200 with no path containing a dot segment; `/api/tree` shows no dot entries; a note in a nested dot-directory requested on its own returns 403; `/api/hemispheres`, `/api/status`, `/api/mocs`, `/api/templates`, `/api/skills` all 200. |

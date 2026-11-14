@@ -149,6 +149,8 @@ def test_agent_may_write(layout, path):
         ("README.md", "read-only"),
         ("copilot/chat.md", "unmanaged"),
         (".obsidian/app.json", "dot-directory"),
+        ("10_Repositories/repo/.cursor/skills/note.md", "dot-directory"),
+        ("10_Repositories/repo/.hidden.md", "dot-directory"),
         ("Surprise/note.md", "not a directory declared"),
         ("stray.md", "not declared"),
         ("", "Vault root itself"),

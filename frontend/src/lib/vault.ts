@@ -9,6 +9,8 @@ export interface VaultFile {
   content: string;
   frontmatter: Record<string, any>;
   hemisphere?: string;
+  /** Set by the server when the note's frontmatter is not valid YAML. */
+  frontmatter_error?: string;
 }
 
 export interface VaultStatus {
@@ -102,7 +104,12 @@ export async function getVaultFiles(): Promise<VaultFile[]> {
   }
 
   // 2. Fallback to build-time static glob (for static hosting/previews)
-  const rootModules = import.meta.glob('../../../vault/**/*.md', { query: '?raw', import: 'default' });
+  // Paths containing '#' are left out: the bundler reads '#' as the start of a
+  // URL fragment and cannot resolve them, which fails the whole build.
+  const rootModules = import.meta.glob(
+    ['../../../vault/**/*.md', '!../../../vault/**/*#*', '!../../../vault/**/*#*/**'],
+    { query: '?raw', import: 'default' }
+  );
   const files: VaultFile[] = [];
 
   for (const path in rootModules) {
@@ -237,7 +244,7 @@ export interface BackupResponse {
 
 export async function backupSessions(providers: SessionProvider[], targetPath: string): Promise<BackupResponse | null> {
   try {
-    const res = await fetch(`${API_BASE}/api/sessions/backup`, {
+    const res = await fetch('/api/sessions/backup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ providers, targetPath }),

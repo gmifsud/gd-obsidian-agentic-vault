@@ -63,6 +63,8 @@ test('only root files and declared directories are readable', () => {
   assert.equal(layout.isReadable('Connections/Tokens/key.md'), false);
   assert.equal(layout.isReadable('.obsidian/app.json'), false);
   assert.equal(layout.isReadable('.env'), false);
+  assert.equal(layout.isReadable('10_Repositories/repo/.cursor/skills/note.md'), false);
+  assert.equal(layout.isReadable('10_Repositories/repo/.hidden.md'), false);
   assert.equal(layout.isReadable('10_Repositories/../../outside.md'), false);
   assert.equal(layout.isReadable(''), false);
 });

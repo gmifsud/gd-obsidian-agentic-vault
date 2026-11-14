@@ -16,6 +16,11 @@ export const ZONES = ['left', 'right', 'assets'];
 
 export class VaultLayoutError extends Error {}
 
+/** Dot-directories and dot-files are never Vault content, at any depth. */
+export function isHiddenEntry(name) {
+  return name.startsWith('.');
+}
+
 function isMapping(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
@@ -85,13 +90,14 @@ export function readVaultLayout(vaultPath) {
 
     /**
      * Whether the Control Panel may read a Vault-relative path: files at the
-     * root, and anything inside a declared directory. Unmanaged, undeclared
-     * and dot-directories are never read.
+     * root, and anything inside a declared directory. Unmanaged and undeclared
+     * directories are never read, nor is a dot-directory or dot-file at any depth.
      */
     isReadable(relativePath) {
       const segments = relativePath.replace(/\\/g, '/').split('/').filter(Boolean);
       if (segments.length === 0 || segments.includes('..')) return false;
-      if (segments.length === 1) return !segments[0].startsWith('.');
+      if (segments.some(isHiddenEntry)) return false;
+      if (segments.length === 1) return true;
       return Object.prototype.hasOwnProperty.call(directories, segments[0]);
     },
 
