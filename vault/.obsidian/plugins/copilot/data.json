@@ -3,7 +3,7 @@
   "isPaidUser": true,
   "isPlusUser": true,
   "entitlementToken": "",
-  "entitlementExpiresAt": 1795855986000,
+  "entitlementExpiresAt": 1795906304000,
   "plusLicenseKey": "",
   "openAIApiKey": "",
   "openAIOrgId": "",
@@ -393,7 +393,8 @@
         "defaultModel": {
           "baseModelId": "copilot-plus/deepseek-v4-pro",
           "effort": null
-        }
+        },
+        "defaultMode": "auto"
       }
     },
     "debugFullFrames": true,

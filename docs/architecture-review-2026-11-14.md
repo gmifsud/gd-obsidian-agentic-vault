@@ -452,7 +452,7 @@ The MOC entries for the Left Hemisphere directories and `00_MOCs` were not discu
 | Go-ahead to start the build | Given; build complete (section 8) |
 | Whether to commit the venv untracking on its own first | Done: committed separately as `0fb8ffe` |
 | `AGENT_INSTRUCTIONS.md` and the prose check | Done (section 8.5): the `Reviews` exception is stated and the MOC command points at `vault_manager.py auto-update-moc`. |
-| Notes with unparseable frontmatter | Server made tolerant (section 8.5); `/api/files` and `/api/hemispheres` load on the Blueprint. The 19 notes themselves are not corrected. |
+| Notes with unparseable frontmatter | Server made tolerant (section 8.5). The notes themselves all came through symlinks that have since been removed (section 8.8), so the Blueprint now has none. |
 | `API_BASE` in `vault.ts` | Done (section 8.5); `npm run lint` passes. Session backup itself has not been exercised. |
 | Dot-directories nested inside a declared directory | Decided and done (section 8.6): ignored at any depth, by the Control Panel and the Engine. |
 | Control Panel in a browser | First render of seven screens checked by screenshot (section 8.7). Nothing was clicked; Sessions and Orchestrator were not opened. |
@@ -599,4 +599,33 @@ Nothing was clicked: the Left Hemisphere and Assets tabs, the Vault Explorer, Se
 
 - The static bundle does not follow the layout. A local build includes 31 notes from `copilot/`, one from `Connections/` and the Left Hemisphere notes, and the server serves those bundle files to anyone who can reach its port. The published site is not affected in the same way, because it is built from tracked files only and both directories are untracked. Dot-directories are already left out by the bundler.
 - The Dashboard has no card for the Assets Zone; its one file is counted in the total only.
+
+### 8.8 Symlinks into the Knowledge Vault removed
+
+**What was found.** Three symlinks in the Blueprint pointed into the Knowledge Vault and supplied 2,990 of the 3,041 notes the Control Panel read:
+
+| Link | Target | Notes |
+|---|---|---|
+| `10_Repositories/Projects` | `D:\Users\grego\Documents\Obsidian\Knowledge\Work\Projects` | 2,775 |
+| `10_Repositories/ISL.Azure.Licensing` | the `ISL.Azure.Licensing` directory inside the same target, so a duplicate | 100 |
+| `25_Knowledge_Base/Connections` | `...\Knowledge\Connections` | 115 |
+
+The first two were made by the `lns-directories` Obsidian plugin; eight further entries in its data file referred to links that no longer existed. All three had been committed in `31be473` as symlinks to absolute paths on one machine. The Engine already refused to write through them, because the path resolves outside the Vault.
+
+**Decision.** Remove them for now. This is decision 15 applied: the Knowledge Vault gets its own analysis, and the Blueprint starts clean.
+
+**What was done.** The plugin and the `Connections` link were removed and committed as `3d180b0`. Removing the plugin left its two links in place; they were then deleted as links only, and the target directories were checked to be untouched (same entry counts before and after). Those two deletions are not yet committed.
+
+**Effect on the Blueprint.**
+
+| | Before | After |
+|---|---|---|
+| Notes read by the Control Panel | 3,041 | 51 |
+| Notes with invalid frontmatter | 14 | 0 |
+| `/api/files` response time | 15 to 30 seconds | under 0.2 seconds |
+| Built bundle | 2,763 files, 88 MB | 86 files, 0.7 MB |
+
+`validate`: layout checks PASS; MOC link checks FAIL on the same ten links. 53 pytest and 14 Node tests pass.
+
+Two things in earlier sections are now moot for the Blueprint but stay in the code: the tolerance for invalid frontmatter (8.5) and the exclusion of `#` paths from the bundle (8.7). The section 8.7 finding about `copilot/` and the root `Connections/` directory still stands: both are real directories, not links, and a local build still bundles their 32 notes.
 - Cosmetic, and older than this work: system files on the Dashboard carry a trailing slash (`CLAUDE.md/`); the Dashboard counts five templates where the Templates page shows six cards; a link written as `[[target|label]]` renders as `target|label`.
