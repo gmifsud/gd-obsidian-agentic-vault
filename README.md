@@ -2,6 +2,8 @@
 
 Vau-M is a Blueprint for an Obsidian vault that AI agents can work in safely, plus the tools that check and copy it.
 
+The [knowledge lifecycle guide](docs/knowledge-lifecycle-usage.md) covers the corrective Codex pilot: evidence-linked drafts, explicit human review and fresh context for later tasks. Other harnesses remain available for browsing/cataloguing and are not yet qualified for knowledge creation or full export. See the [PRD](docs/prd-knowledge-lifecycle-correctness.md) and [acceptance evidence](vault/01_Journal/Reviews/2026-11-15%20-%20Knowledge%20Lifecycle%20Implementation%20Evidence.md) for the current limits.
+
 The Vault is split into three Zones. The Left Hemisphere holds human writing and is read-only to agents. The Right Hemisphere holds agent-authored notes and is writable. The Assets Zone holds files that notes refer to, such as images and diagrams, and is writable. One file, `vault/vault.config.yaml`, states which directory is in which Zone, whether agents may write there, and which Map of Content indexes it. The words for all of this are defined in `CONTEXT.md`.
 
 ```
@@ -36,7 +38,7 @@ The Engine refuses anything outside a directory the layout declares. It also ref
 | `10_Repositories/` | Right | Yes | `Repositories_MOC.md` |
 | `15_Prototype_Designs/` | Right | Yes | — |
 | `20_DevOps/` | Right | Yes | `DevOps_MOC.md` |
-| `25_Knowledge_Base/` | Right | Yes | — |
+| `25_Knowledge_Base/` | Right | Yes | `Knowledge_Base_MOC.md` |
 | `30_Git/` | Right | Yes | `Git_MOC.md` |
 | `35_Sessions/` | Right | Yes | `Sessions_MOC.md` |
 | `40_Agent_Skills/` | Right | Yes | — |
@@ -72,7 +74,7 @@ title: "PRD: platform admin portal"
 
 A note with no properties should open with a heading. A `---` on the first line starts a properties block, so a horizontal rule there is read as YAML.
 
-The Control Panel still serves a note whose properties do not parse, with empty properties, and prints one warning per note each time the server runs. `validate` does not currently check frontmatter.
+The Control Panel still serves a note whose properties do not parse, with empty properties, and reports the error. Engine `validate` checks YAML frontmatter and versioned lifecycle fields; retrieval fails explicitly on malformed indexed notes rather than returning stale success.
 
 ### Close a session in the Ledger
 
@@ -96,7 +98,7 @@ Symlinks need care. A link inside a declared directory is followed, so the Contr
 .\backend\venv\Scripts\python.exe backend\vault_manager.py validate
 ```
 
-The command prints two sections. **Layout checks** cover the directories, the system files and the prose files that restate the directory lists. **MOC link checks** cover wikilinks in the Maps of Content. On this Blueprint the layout section passes, and the link section fails on ten known links; that failure is recorded in `docs/architecture-review-2026-11-14.md` and is left for a later change. Read the section headings to see which result you have.
+The command reports **Layout checks**, **MOC link checks** and **Frontmatter checks**. These cover declared directories/system files and their prose lists, wikilinks in Maps of Content, and note metadata respectively. The corrective lifecycle validation passes all three on this Blueprint; empty content directories produce warnings separately.
 
 Every command prints the Vault root it acted on, to standard error, so a command aimed at the wrong Vault is visible.
 
@@ -114,7 +116,7 @@ On macOS or Linux the interpreter is `backend/venv/bin/python`. `vault-status` p
 
 `VAULT_PATH` selects the Vault, and it defaults to this repository's `vault/`. Set it to an absolute path. A relative value is resolved against `frontend/`, which is rarely what you want. The variable may live in the repository `.env` or the environment.
 
-`query.py embed` and `query.py search` index and search `25_Knowledge_Base/`. They need `fastembed` and `numpy`, which are listed as optional in `backend/requirements.txt` and are not installed by the setup below.
+`query.py embed` refreshes a vault-owned FTS5 lexical index. `query.py search` and `query.py brief` refresh changed content automatically and normally return only reviewed knowledge. No embedding model or optional vector dependency is needed for this pilot. Diagnostic inclusion of legacy/draft notes is explicit; see the [usage guide](docs/knowledge-lifecycle-usage.md#4-retrieve-context).
 
 ### Control Panel
 
@@ -142,7 +144,7 @@ The generator copies this Blueprint. It requires a valid layout and all five req
 .\backend\venv\Scripts\python.exe backend\architect_generator.py D:\path\to\new-vault
 ```
 
-The new Vault gets the declared directories, the required system files, and the contents of `00_MOCs/`, `40_Agent_Skills/` and `80_Templates/`. It also gets a `vault.config.yaml` containing this Blueprint's layout, and a `claude.json` describing two MCP servers. Point `VAULT_PATH` at it before running the Engine against it. `--from-vault` selects a different Blueprint.
+The new Vault gets the declared directories, the required system files, and the contents of `00_MOCs/`, `40_Agent_Skills/` and `80_Templates/`. It also gets a `vault.config.yaml` containing this Blueprint's layout, and a `claude.json` with the `vau-m-engine` binding plus the existing third-party entries. The Engine binding uses an absolute interpreter/script and the generated vault's absolute `VAULT_PATH`; only that binding is qualified by the pilot. Point `VAULT_PATH` at the generated vault before running CLI commands. `--from-vault` selects a different Blueprint.
 
 ## Setup
 

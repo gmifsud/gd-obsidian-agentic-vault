@@ -12,16 +12,20 @@ export default defineConfig(({mode}) => {
 
   const apiPort = env.VITE_API_PORT || env.PORT || '3001';
   const devPort = parseInt(env.VITE_PORT || '3000');
+  const selectedVault = path.resolve(__dirname, env.VAULT_PATH || '../vault');
+  const relativeVault = path.relative(__dirname, selectedVault).replace(/\\/g, '/');
+  const globPrefix = (relativeVault.startsWith('.') ? relativeVault : '/' + relativeVault) + '/';
 
   return {
     plugins: [react(), tailwindcss()],
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+      'import.meta.env.VAULT_GLOB_PREFIX': JSON.stringify(globPrefix),
     },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
-        '@vault': path.resolve(__dirname, '../vault'),
+        '@vault': selectedVault,
       },
     },
     server: {

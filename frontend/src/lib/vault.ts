@@ -107,7 +107,7 @@ export async function getVaultFiles(): Promise<VaultFile[]> {
   // Paths containing '#' are left out: the bundler reads '#' as the start of a
   // URL fragment and cannot resolve them, which fails the whole build.
   const rootModules = import.meta.glob(
-    ['../../../vault/**/*.md', '!../../../vault/**/*#*', '!../../../vault/**/*#*/**'],
+    ['@vault/**/*.md', '!@vault/**/*#*', '!@vault/**/*#*/**'],
     { query: '?raw', import: 'default' }
   );
   const files: VaultFile[] = [];
@@ -118,7 +118,9 @@ export async function getVaultFiles(): Promise<VaultFile[]> {
     try {
       const rawContent = await rootModules[path]() as string;
       const { data, content } = parseFrontmatter(rawContent);
-      const cleanPath = path.replace('../../../vault/', '');
+      const prefix = import.meta.env.VAULT_GLOB_PREFIX as string;
+      if (!path.startsWith(prefix)) throw new Error('Static note is outside the selected vault');
+      const cleanPath = path.slice(prefix.length);
       const name = cleanPath.split('/').pop() || '';
       const basename = name.replace(/\.md$/, '');
 
@@ -205,9 +207,15 @@ export interface SessionSummary {
   messageCount: number;
   sizeBytes: number;
   sourcePath: string;
+  topic?: string;
+  sourceKey?: string;
+  sourceRevision?: string;
+  parseStatus?: string;
+  diagnostics?: string[];
 }
 
 export interface SessionListResponse {
+  outcomes?: { provider: string; status: string; error?: string }[];
   total: number;
   providers_scanned: string[];
   cursor_available: boolean;
@@ -215,6 +223,9 @@ export interface SessionListResponse {
 }
 
 export interface SessionMessage {
+  evidence_id?: string;
+  kind?: string;
+  call_id?: string;
   role: 'user' | 'assistant' | 'tool' | 'system' | string;
   content: string;
   timestamp: string;
@@ -223,6 +234,12 @@ export interface SessionMessage {
 export interface SessionDetail {
   messages: SessionMessage[];
   sourcePath: string;
+  qualified?: boolean;
+  nextOffset?: number | null;
+  total?: number;
+  parseStatus?: string;
+  diagnostics?: string[];
+  record?: { source_key: string; source_revision: string; topic: string };
 }
 
 export async function fetchSessions(providers?: SessionProvider[]): Promise<SessionListResponse | null> {
@@ -230,8 +247,10 @@ export async function fetchSessions(providers?: SessionProvider[]): Promise<Sess
   return apiFetch<SessionListResponse>(`/api/sessions${params}`);
 }
 
-export async function fetchSessionDetail(provider: string, id: string): Promise<SessionDetail | null> {
-  return apiFetch<SessionDetail>(`/api/sessions/${encodeURIComponent(provider)}/${encodeURIComponent(id)}`);
+export async function fetchSessionDetail(provider: string, id: string, sourceKey?: string, offset = 0): Promise<SessionDetail | null> {
+  const params = new URLSearchParams({ offset: String(offset) });
+  if (sourceKey) params.set('sourceKey', sourceKey);
+  return apiFetch<SessionDetail>(`/api/sessions/${encodeURIComponent(provider)}/${encodeURIComponent(id)}?${params}`);
 }
 
 export interface BackupResponse {
@@ -259,9 +278,61 @@ export async function backupSessions(providers: SessionProvider[], targetPath: s
   }
 }
 
+export interface DistillSessionResponse {
+  status?: string;
+  revision?: string;
+  review_state?: string;
+  success: boolean;
+  notePath?: string;
+  title?: string;
+  error?: string;
+}
+
+export async function distillSession(
+  provider: SessionProvider,
+  sessionId: string,
+  targetDir = '25_Knowledge_Base',
+  kind: 'synthesis' | 'troubleshooting' | 'adr' = 'synthesis',
+  title?: string,
+  candidate?: object,
+  sourceKey?: string,
+  expectedRevision?: string,
+): Promise<DistillSessionResponse> {
+  try {
+    const res = await fetch('/api/sessions/distill', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider, sessionId, targetDir, kind, title, candidate, sourceKey, expectedRevision }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      return { success: false, error: data.error || 'Distillation failed' };
+    }
+    return data;
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Network connection error' };
+  }
+}
+
 // ============================================
 // Frontmatter Parser (browser-safe fallback)
 // ============================================
+
+export interface LifecycleCapabilities {
+  targets: string[];
+  export_targets: string[];
+  sections: Record<string, string[]>;
+  template_errors: Record<string, string>;
+}
+
+export async function lifecycleRequest<T>(operation: string, args?: object): Promise<T> {
+  const response = await fetch(`/api/lifecycle/${operation}`, args === undefined ? {} : {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(args),
+  });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error || `Request failed (${response.status})`);
+  return result as T;
+}
 
 function parseFrontmatter(raw: string) {
   const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);

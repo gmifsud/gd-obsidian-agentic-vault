@@ -92,8 +92,11 @@ def generate(
             console.print(f"[dim]  {directory}/ not found in source vault; directory created empty.[/dim]")
 
     # MCP Hooks
+    mcp_script = (Path(__file__).resolve().parent / "mcp_server.py").as_posix()
     claude_json = {
         "mcpServers": {
+            "vau-m-engine": { "command": str(Path(sys.executable).resolve()), "args": [mcp_script],
+                              "env": {"VAULT_PATH": str(target_path.resolve())} },
             "obsidian-vault-search": { "command": "npx", "args": ["-y", "@modelcontextprotocol/server-obsidian", "--dir", "."] },
             "pieces-memory": { "command": "npx", "args": ["-y", "@pieces-app/mcp-server"] }
         }

@@ -1,4 +1,5 @@
 import express from 'express';
+import { engineCall, lifecycleError, sessionSummary } from './lifecycle.js';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
@@ -339,104 +340,7 @@ function claudeMessageParser(entry) {
   return null;
 }
 
-// ============================================
-// Provider: Codex CLI
-// ============================================
-
-function discoverCodexSessions(basePath) {
-  const sessions = [];
-  if (!fs.existsSync(basePath)) return sessions;
-
-  try {
-    // Walk YYYY/MM/DD structure
-    function walkCodexDir(dir) {
-      const entries = fs.readdirSync(dir);
-      for (const entry of entries) {
-        const fullPath = path.join(dir, entry);
-        const stat = safeStat(fullPath);
-        if (!stat) continue;
-
-        if (stat.isDirectory()) {
-          walkCodexDir(fullPath);
-        } else if (entry.startsWith('rollout-') && entry.endsWith('.jsonl')) {
-          // Parse date and session ID from filename: rollout-YYYY-MM-DDTHH-MM-SS-<uuid>.jsonl
-          const match = entry.match(/^rollout-(\d{4}-\d{2}-\d{2})T(\d{2})-(\d{2})-(\d{2})-(.+)\.jsonl$/);
-          let startedAt = stat.birthtime.toISOString();
-          let sessionId = entry.replace('.jsonl', '');
-
-          if (match) {
-            const [, date, h, m, s, uuid] = match;
-            startedAt = `${date}T${h}:${m}:${s}Z`;
-            sessionId = uuid;
-          }
-
-          const messageCount = Math.max(1, Math.round(stat.size / 2000));
-
-          sessions.push({
-            id: sessionId,
-            provider: 'codex',
-            project: path.relative(basePath, dir).replace(/\\/g, '/') || 'root',
-            startedAt,
-            lastModified: stat.mtime.toISOString(),
-            messageCount: messageCount,
-            sizeBytes: stat.size,
-            sourcePath: fullPath,
-          });
-        }
-      }
-    }
-
-    walkCodexDir(basePath);
-  } catch (err) {
-    console.error('[Sessions] Error discovering Codex sessions:', err.message);
-  }
-  return sessions;
-}
-
-function getCodexSessionDetail(basePath, sessionId) {
-  if (!fs.existsSync(basePath)) return null;
-
-  // Recursively find the matching rollout file
-  function findFile(dir) {
-    const entries = fs.readdirSync(dir);
-    for (const entry of entries) {
-      const fullPath = path.join(dir, entry);
-      const stat = safeStat(fullPath);
-      if (!stat) continue;
-      if (stat.isDirectory()) {
-        const found = findFile(fullPath);
-        if (found) return found;
-      } else if (entry.includes(sessionId) && entry.endsWith('.jsonl')) {
-        return fullPath;
-      }
-    }
-    return null;
-  }
-
-  const filePath = findFile(basePath);
-  if (!filePath) return null;
-
-  const messages = parseJsonlMessages(filePath, (entry) => {
-    if (entry.role === 'user' || entry.type === 'user') {
-      const text = typeof entry.content === 'string' ? entry.content :
-                   Array.isArray(entry.content) ? entry.content.map(c => c.text || '').join('\n') :
-                   JSON.stringify(entry.content || '');
-      return { role: 'user', content: text, timestamp: entry.timestamp || '' };
-    }
-    if (entry.role === 'assistant' || entry.type === 'assistant') {
-      const text = typeof entry.content === 'string' ? entry.content :
-                   Array.isArray(entry.content) ? entry.content.map(c => c.text || '').join('\n') :
-                   JSON.stringify(entry.content || '');
-      return { role: 'assistant', content: text, timestamp: entry.timestamp || '' };
-    }
-    if (entry.type === 'function_call' || entry.type === 'tool_call') {
-      return { role: 'tool', content: JSON.stringify(entry, null, 2).slice(0, 2000), timestamp: entry.timestamp || '' };
-    }
-    return null;
-  });
-
-  return { messages, sourcePath: filePath };
-}
+// Codex browsing/export use the Engine through lifecycle.js.
 
 // ============================================
 // Provider: Cursor (SQLite — graceful fallback)
@@ -782,7 +686,8 @@ function getKiloCodeSessionDetail(basePath, sessionId) {
 // ============================================
 
 // GET /api/sessions — Unified session list
-router.get('/api/sessions', (req, res) => {
+router.get('/api/sessions', async (req, res) => {
+  try {
   const paths = getSessionPaths();
   const providerFilter = req.query.provider; // optional: ?provider=claude,gemini
 
@@ -796,7 +701,9 @@ router.get('/api/sessions', (req, res) => {
     allSessions = allSessions.concat(discoverClaudeSessions(paths.claude));
   }
   if (providers.includes('codex')) {
-    allSessions = allSessions.concat(discoverCodexSessions(paths.codex));
+    const scanned = await engineCall('sessions', { providers: ['codex'] });
+    allSessions = allSessions.concat(scanned.records.map(sessionSummary));
+    req.codexOutcomes = scanned.outcomes;
   }
   if (providers.includes('cursor')) {
     allSessions = allSessions.concat(discoverCursorSessions(paths.cursor));
@@ -818,12 +725,14 @@ router.get('/api/sessions', (req, res) => {
     total: allSessions.length,
     providers_scanned: providers,
     cursor_available: !!Database,
-    sessions: allSessions,
+    sessions: allSessions.map(s => ({ ...s, parseStatus: s.parseStatus || 'unqualified' })),
+    outcomes: req.codexOutcomes || [],
   });
+  } catch (error) { lifecycleError(res, error); }
 });
 
 // GET /api/sessions/:provider/:id — Full session transcript
-router.get('/api/sessions/:provider/:id', (req, res) => {
+router.get('/api/sessions/:provider/:id', async (req, res) => {
   const { provider, id } = req.params;
   const paths = getSessionPaths();
 
@@ -833,8 +742,13 @@ router.get('/api/sessions/:provider/:id', (req, res) => {
       detail = getClaudeSessionDetail(paths.claude, id);
       break;
     case 'codex':
-      detail = getCodexSessionDetail(paths.codex, id);
-      break;
+      try {
+        const page = await engineCall('prepare', { provider, session_id: id,
+          source_key: req.query.sourceKey, offset: Number(req.query.offset || 0), limit: 30 });
+        return res.json({ messages: page.evidence, sourcePath: page.record.source_path,
+          record: page.record, qualified: page.qualified, nextOffset: page.next_offset,
+          total: page.total, parseStatus: page.record.parse_status, diagnostics: page.record.diagnostics });
+      } catch (error) { return lifecycleError(res, error); }
     case 'cursor':
       detail = getCursorSessionDetail(paths.cursor, id);
       break;
@@ -862,129 +776,27 @@ router.get('/api/sessions/:provider/:id', (req, res) => {
 // Backup & Export Functionality
 // ============================================
 
-async function executeBackup(providersList, targetPath) {
-  const paths = getSessionPaths();
-  const activeProviders = Array.isArray(providersList) && providersList.length > 0
-    ? providersList.map(p => p.toLowerCase())
-    : ['claude', 'codex', 'cursor', 'gemini', 'kilocode', 'copilot'];
-
-  let backedUpCount = 0;
-  const errors = [];
-
-  // Create base backup dir
-  try {
-    fs.mkdirSync(targetPath, { recursive: true });
-  } catch (err) {
-    return { success: false, error: `Could not create target directory: ${err.message}` };
-  }
-
-  const sanitizeFilename = (name) => name.replace(/[\\/:*?"<>|]/g, '_');
-
-  for (const provider of activeProviders) {
-    let sessions = [];
-    switch (provider) {
-      case 'claude':
-        sessions = discoverClaudeSessions(paths.claude);
-        break;
-      case 'codex':
-        sessions = discoverCodexSessions(paths.codex);
-        break;
-      case 'cursor':
-        sessions = discoverCursorSessions(paths.cursor);
-        break;
-      case 'gemini':
-        sessions = discoverGeminiSessions(paths.gemini);
-        break;
-      case 'kilocode':
-        sessions = discoverKiloCodeSessions(paths.kilocode);
-        break;
-      case 'copilot':
-        sessions = discoverCopilotSessions(copilotConversationsDir());
-        break;
-    }
-
-    if (sessions.length > 0) {
-      const providerDir = path.join(targetPath, provider);
-      try {
-        fs.mkdirSync(providerDir, { recursive: true });
-      } catch (err) {
-        errors.push(`Could not create directory for provider ${provider}: ${err.message}`);
-        continue;
-      }
-
-      for (const session of sessions) {
-        let detail = null;
-        try {
-          switch (provider) {
-            case 'claude':
-              detail = getClaudeSessionDetail(paths.claude, session.id);
-              break;
-            case 'codex':
-              detail = getCodexSessionDetail(paths.codex, session.id);
-              break;
-            case 'cursor':
-              detail = getCursorSessionDetail(paths.cursor, session.id);
-              break;
-            case 'gemini':
-              detail = getGeminiSessionDetail(paths.gemini, session.id);
-              break;
-          case 'kilocode':
-            detail = getKiloCodeSessionDetail(paths.kilocode, session.id);
-            break;
-          case 'copilot':
-            detail = getCopilotSessionDetail(copilotConversationsDir(), session.id);
-            break;
-          }
-
-          if (detail && detail.messages && detail.messages.length > 0) {
-            // Build Markdown with frontmatter
-            const safeProjectName = sanitizeFilename(session.project);
-            const safeSessionId = sanitizeFilename(session.id);
-            const fileName = `${safeProjectName}_${safeSessionId}.md`;
-            const fileDest = path.join(providerDir, fileName);
-
-            let md = `---\ntype: session-backup\nprovider: ${provider}\nproject: "${session.project.replace(/"/g, '\\"')}"\nsessionId: "${session.id}"\nstartedAt: "${session.startedAt}"\nlastModified: "${session.lastModified}"\n---\n\n`;
-            md += `# Session Backup: ${session.project}\n\n`;
-            md += `- **Provider**: ${provider}\n`;
-            md += `- **Session ID**: \`${session.id}\`\n`;
-            md += `- **Date Started**: ${session.startedAt}\n`;
-            md += `- **Last Activity**: ${session.lastModified}\n`;
-            md += `- **Source Path**: \`${session.sourcePath}\`\n\n`;
-            md += `---\n\n`;
-
-            for (const msg of detail.messages) {
-              const roleName = msg.role === 'user' ? 'Human' : msg.role === 'assistant' ? 'AI Agent' : msg.role.toUpperCase();
-              md += `### 💬 ${roleName} (${msg.timestamp || 'No Timestamp'})\n\n`;
-              md += `${msg.content}\n\n`;
-              md += `---\n\n`;
-            }
-
-            fs.writeFileSync(fileDest, md, 'utf-8');
-            backedUpCount++;
-          }
-        } catch (err) {
-          errors.push(`Error backing up session ${session.id} (${provider}): ${err.message}`);
-        }
-      }
-    }
-  }
-
-  return {
-    success: true,
-    backedUpCount,
-    totalScannedProviders: activeProviders.length,
-    errors: errors.length > 0 ? errors : null
-  };
-}
-
-// POST /api/sessions/backup — Consolidated backup endpoint
 router.post('/api/sessions/backup', async (req, res) => {
-  const { providers, targetPath } = req.body;
-  if (!targetPath) {
-    return res.status(400).json({ error: 'targetPath parameter is required' });
+  try {
+    const result = await engineCall('backup', { providers: req.body.providers,
+      target_dir: req.body.targetPath });
+    res.json(result);
+  } catch (error) { lifecycleError(res, error); }
+});
+
+router.get('/api/lifecycle/capabilities', async (req, res) => {
+  try { res.json(await engineCall('capabilities', {})); }
+  catch (error) { lifecycleError(res, error); }
+});
+
+router.post('/api/lifecycle/:operation', async (req, res) => {
+  if (!['prepare', 'submit', 'preview', 'review', 'export', 'search', 'brief'].includes(req.params.operation)) {
+    return res.status(404).json({ error: 'Unknown lifecycle operation' });
   }
-  const result = await executeBackup(providers, targetPath);
-  res.json(result);
+  try {
+    const result = await engineCall(req.params.operation, req.body);
+    res.status(result.status === 'partial' ? 207 : 200).json(result);
+  } catch (error) { lifecycleError(res, error); }
 });
 
 export default router;

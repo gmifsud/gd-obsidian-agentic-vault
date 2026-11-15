@@ -1,25 +1,38 @@
-"""Catalogue Obsidian Copilot conversations as short Vault notes.
+"""Catalogue AI harness conversations as short Vault notes in ``35_Sessions/``.
 
-The plugin owns vault/copilot/ and writes the transcripts. This module reads
-the conversations folder only, and writes one note per conversation into
-35_Sessions/. Skills and custom prompts are left alone. Running it again
-skips a conversation that is already catalogued.
+External harnesses (Claude Code, Codex CLI, Cursor, Gemini / Antigravity,
+Kilo Code) and Obsidian Copilot (`vault/copilot/`) keep their own transcript
+files. This module writes one short pointer note per session into
+``35_Sessions/`` and indexes it in ``Sessions_MOC.md``. Repeated scans use the scoped source key, conservatively adopting exact legacy source pointers.
 """
 
 from __future__ import annotations
 
 import re
+import json
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
 import yaml
 
+from session_providers import SessionRecord
 from vault_layout import VaultLayout
+from vault_io import atomic_write, digest, fingerprint, moc_text, preflight, vault_lock
 
 CATALOGUE_DIRECTORY = "35_Sessions"
 CONVERSATIONS_RELATIVE = Path("copilot") / "copilot-conversations"
 _INVALID_FILENAME = re.compile(r'[\\/:*?"<>|]')
+
+_PROVIDER_LABELS = {
+    "claude": "Claude",
+    "codex": "Codex",
+    "cursor": "Cursor",
+    "gemini": "Gemini",
+    "kilocode": "KiloCode",
+    "copilot": "Copilot",
+}
 
 
 @dataclass
@@ -27,6 +40,63 @@ class CatalogueResult:
     written: list[Path] = field(default_factory=list)
     skipped: list[str] = field(default_factory=list)
     problems: list[str] = field(default_factory=list)
+    updated: list[Path] = field(default_factory=list)
+
+
+def catalogue_records(layout: VaultLayout, records: Iterable[SessionRecord], limit: int | None = None) -> CatalogueResult:
+    """Create pointers and refresh source metadata, preserving authored text and new-note limits."""
+    result = CatalogueResult()
+    with vault_lock(layout):
+        for rec in records:
+            if limit is not None and len(result.written) >= limit:
+                break
+            persisted = []
+            try:
+                path, content, revision = plan_catalogue(layout, rec)
+                moc = layout.moc_for(path)
+                preflight(layout, [path] + ([moc] if moc else []))
+                moc_revision = fingerprint(moc) if moc else None
+                moc_content = moc_text(moc.read_text(encoding='utf-8') if moc and moc.exists() else '# Sessions\n', path.stem, rec.topic)
+                if revision is None:
+                    atomic_write(layout, path, content, None)
+                    persisted.append(str(path))
+                    result.written.append(path)
+                elif digest(content) != revision:
+                    atomic_write(layout, path, content, revision)
+                    persisted.append(str(path))
+                    result.updated.append(path)
+                else:
+                    result.skipped.append(rec.source_path)
+                if moc and digest(moc_content) != moc_revision:
+                    atomic_write(layout, moc, moc_content, moc_revision)
+            except (OSError, ValueError) as exc:
+                result.problems.append(f'{rec.source_key}: {exc}; persisted={persisted}')
+    return result
+
+
+def plan_catalogue(layout: VaultLayout, rec: SessionRecord) -> tuple[Path, str, str | None]:
+    """Conservatively adopt only an exact legacy source; never a title or bare ID."""
+    directory = layout.root / CATALOGUE_DIRECTORY
+    matches = []
+    for note in sorted(directory.glob('*.md')):
+        data = _frontmatter(note) if note.read_text(encoding='utf-8').startswith('---\n') else {}
+        if data.get('source_key') == rec.source_key or (not data.get('source_key') and data.get('source') == rec.source_path):
+            matches.append(note)
+    if len(matches) > 1:
+        raise ValueError(f'Ambiguous catalogue identity: {rec.source_key}')
+    if matches:
+        path = matches[0]
+        revision = fingerprint(path)
+        text = path.read_text(encoding='utf-8')
+        current = yaml.safe_load(text.split('---\n', 2)[1])
+        if current.get('source_key') != rec.source_key and (current.get('source_key') or current.get('source') != rec.source_path):
+            raise ValueError('Catalogue identity changed during lookup')
+        return path, update_catalogue_fields(text, _source_fields(rec)), revision
+    label = _PROVIDER_LABELS.get(rec.provider.lower(), rec.provider.capitalize())
+    path = _note_path(directory, rec.topic, rec.source_key, label)
+    if path.exists():
+        raise ValueError(f'Catalogue filename collision: {path}')
+    return path, _record_note_text(rec), None
 
 
 def catalogue_copilot_conversations(layout: VaultLayout) -> CatalogueResult:
@@ -37,49 +107,68 @@ def catalogue_copilot_conversations(layout: VaultLayout) -> CatalogueResult:
         result.problems.append(f"No Copilot conversations folder at {source_dir}")
         return result
 
-    catalogue_dir = layout.root / CATALOGUE_DIRECTORY
-    decision = layout.may_agent_write(catalogue_dir / "note.md")
-    if not decision.allowed:
-        result.problems.append(decision.reason)
-        return result
-
-    already = _catalogued_sources(catalogue_dir)
-    moc_path = layout.moc_for(catalogue_dir / "note.md")
-
+    records = []
     for path in sorted(source_dir.glob("*.md")):
         if path.name.startswith("."):
             continue
         source = path.relative_to(layout.root).as_posix()
-        if source in already:
-            result.skipped.append(source)
-            continue
         try:
             data = _frontmatter(path)
         except ValueError as exc:
             result.problems.append(f"{source}: {exc}")
             continue
         topic = _topic(data, path)
-        note_path = _note_path(catalogue_dir, topic, path.name)
-        note_path.write_text(_note_text(topic, data, source), encoding="utf-8")
-        _index(moc_path, note_path.stem, topic)
-        already.add(source)
-        result.written.append(note_path)
+        records.append(SessionRecord('copilot', path.stem, 'vault', topic,
+                                     str(data.get('modelKey') or ''), _when(data), '', 0,
+                                     path.stat().st_size, source, str(source_dir.resolve())))
+    published = catalogue_records(layout, records)
+    result.written.extend(published.written)
+    result.skipped.extend(published.skipped)
+    result.problems.extend(published.problems)
+    result.updated.extend(published.updated)
     return result
 
 
-def _catalogued_sources(catalogue_dir: Path) -> set[str]:
-    found: set[str] = set()
-    if not catalogue_dir.is_dir():
-        return found
-    for note in catalogue_dir.glob("*.md"):
-        try:
-            data = _frontmatter(note)
-        except ValueError:
+def update_catalogue_fields(text: str, updates: dict) -> str:
+    """Change owned scalar values only; keep body, comments and unrelated YAML verbatim."""
+    _, front, body = text.split('---\n', 2)
+    tree = yaml.compose(front, Loader=yaml.SafeLoader)
+    if not isinstance(tree, yaml.MappingNode):
+        raise ValueError('Catalogue frontmatter must be a mapping')
+    current = yaml.safe_load(front)
+    anchors = [token.start_mark.index for token in yaml.scan(front)
+               if isinstance(token, (yaml.AnchorToken, yaml.AliasToken))]
+    edits, seen = [], set()
+    for key, value in tree.value:
+        name = key.value
+        if name not in updates:
             continue
-        source = data.get("source")
-        if isinstance(source, str):
-            found.add(source)
-    return found
+        if name in seen or not isinstance(value, yaml.ScalarNode):
+            raise ValueError(f'Ambiguous/non-scalar catalogue field: {name}')
+        seen.add(name)
+        if current[name] != updates[name]:
+            start, end = value.start_mark.index, value.end_mark.index
+            if start < key.end_mark.index or any(start <= position < end for position in anchors):
+                raise ValueError(f'Anchored/aliased catalogue field requires explicit editing: {name}')
+            replacement = json.dumps(updates[name], ensure_ascii=False)
+            if front[start:end].endswith('\n'):
+                replacement += '\n'
+            edits.append((start, end, replacement))
+    for start, end, replacement in reversed(edits):
+        front = front[:start] + replacement + front[end:]
+    for name, value in updates.items():
+        if name not in seen:
+            front += f'{name}: {json.dumps(value, ensure_ascii=False)}\n'
+    return '---\n' + front + '---\n' + body
+
+
+def _source_fields(rec: SessionRecord) -> dict:
+    return {'harness': rec.provider.lower(), 'session_id': rec.session_id,
+            'source_key': rec.source_key, 'source_scope': rec.source_scope,
+            'source_revision': rec.source_revision, 'parse_status': rec.parse_status,
+            'source': rec.source_path, 'project': rec.project, 'repo': rec.repository,
+            'model': rec.model, 'started_at': rec.started_at, 'last_modified': rec.last_modified,
+            'message_count': rec.message_count, 'size_bytes': rec.size_bytes}
 
 
 def _frontmatter(path: Path) -> dict:
@@ -106,36 +195,36 @@ def _topic(data: dict, path: Path) -> str:
     return path.stem
 
 
-def _note_path(catalogue_dir: Path, topic: str, source_name: str) -> Path:
+def _note_path(catalogue_dir: Path, topic: str, source_name: str, prefix: str = "Copilot") -> Path:
     cleaned = _INVALID_FILENAME.sub("", topic)
     cleaned = re.sub(r"\s+", " ", cleaned).strip() or "untitled"
-    candidate = catalogue_dir / f"Copilot - {cleaned}.md"
+    candidate = catalogue_dir / f"{prefix} - {cleaned}.md"
     if not candidate.exists():
         return candidate
-    suffix = re.sub(r"[^A-Za-z0-9]+", "", source_name)[:12] or "2"
-    return catalogue_dir / f"Copilot - {cleaned} ({suffix}).md"
+    suffix = digest(source_name)[:16]
+    return catalogue_dir / f"{prefix} - {cleaned} ({suffix}).md"
 
 
-def _note_text(topic: str, data: dict, source: str) -> str:
-    model = data.get("modelKey")
+def _record_note_text(rec: SessionRecord) -> str:
     recorded = {
         "type": "harness-session",
-        "harness": "copilot",
-        "topic": topic,
-        "model": model if isinstance(model, str) else "",
-        "source": source,
+        **_source_fields(rec),
+        "topic": rec.topic,
         "catalogued": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        "distilled": False,
     }
     front = yaml.safe_dump(recorded, sort_keys=False, allow_unicode=True).strip()
-    when = _when(data)
-    when_line = f"\n- **When:** {when}" if when else ""
-    model_line = f"\n- **Model:** {recorded['model']}" if recorded["model"] else ""
+    model_line = f"\n- **Model:** {rec.model}" if rec.model else ""
     return (
         f"---\n{front}\n---\n\n"
-        f"# {topic}\n\n"
-        "Catalogued from an Obsidian Copilot conversation. "
-        "The transcript stays in the plugin folder.\n\n"
-        f"- **Source:** `{source}`{when_line}{model_line}\n"
+        f"# {rec.topic}\n\n"
+        f"Catalogued from a **{rec.provider}** session. "
+        "The full transcript stays in the harness store.\n\n"
+        f"- **Session ID:** `{rec.session_id}`\n"
+        f"- **Project:** `{rec.project}`\n"
+        f"- **Started:** {rec.started_at}\n"
+        f"- **Messages:** {rec.message_count}\n"
+        f"- **Source:** `{rec.source_path}`{model_line}\n"
     )
 
 
@@ -145,19 +234,3 @@ def _when(data: dict) -> str:
         seconds = epoch / 1000 if epoch > 1_000_000_000_000 else epoch
         return datetime.fromtimestamp(seconds, timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     return ""
-
-
-def _index(moc_path: Path | None, stem: str, topic: str) -> None:
-    if moc_path is None or not moc_path.is_file():
-        return
-    content = moc_path.read_text(encoding="utf-8")
-    if f"[[{stem}]]" in content:
-        return
-    safe_topic = topic.replace("|", "/")
-    entry = f"- [[{stem}]] | harness: copilot | topic: {safe_topic}"
-    header = "## Static Agent Index"
-    if header in content:
-        content = content.replace(header, f"{header}\n{entry}", 1)
-    else:
-        content = content.rstrip() + f"\n\n{header}\n{entry}\n"
-    moc_path.write_text(content, encoding="utf-8")

@@ -12,6 +12,7 @@ Terms (Zone, Unmanaged directory, System file, ...) are defined in CONTEXT.md.
 from __future__ import annotations
 
 import os
+import hashlib
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -136,7 +137,8 @@ class VaultLayout:
                 f"Copy the '{LAYOUT_KEY}' section from the Blueprint's {CONFIG_FILENAME} and adjust it."
             )
         try:
-            config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+            config_bytes = config_path.read_bytes()
+            config = yaml.safe_load(config_bytes.decode('utf-8'))
         except yaml.YAMLError as exc:
             raise VaultLayoutError(f"Vault layout unreadable: {config_path} is not valid YAML: {exc}") from exc
         if not isinstance(config, dict) or LAYOUT_KEY not in config:
@@ -151,7 +153,9 @@ class VaultLayout:
             raise VaultLayoutError(f"Vault layout invalid: {config_path}\n{listed}")
         # 'overrides' and 'unmanaged' may be omitted or left empty.
         raw = {**raw, "overrides": raw.get("overrides") or {}, "unmanaged": raw.get("unmanaged") or []}
-        return cls(root, raw)
+        layout = cls(root, raw)
+        layout.config_revision = hashlib.sha256(config_bytes).hexdigest()
+        return layout
 
     # ------------------------------------------------------------------ facts
 

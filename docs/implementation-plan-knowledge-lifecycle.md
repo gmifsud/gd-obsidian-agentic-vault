@@ -1,5 +1,7 @@
 # Implementation Plan: Vau-M Knowledge Lifecycle (Ingest, Massage, Index & Leverage)
 
+> **2026-11-15 review update:** this is the original implementation plan. The [objective review](../vault/01_Journal/Reviews/2026-11-15%20-%20Knowledge%20Lifecycle%20Objective%20Review.md) found material gaps despite passing tests. The proposed next increment is [PRD VAUM-KLC-001](prd-knowledge-lifecycle-correctness.md), pending explicit approval; earlier completion statements are not acceptance evidence for that increment.
+
 ## Goal
 Transform Vau-M from a structural vault blueprint and passive session browser into a full-lifecycle knowledge engine that ingests multi-harness LLM/agent sessions, massages raw transcripts into structured Vault notes, indexes the entire Right Hemisphere with chunked hybrid search, and serves tailored context briefings back into future agent tasks.
 

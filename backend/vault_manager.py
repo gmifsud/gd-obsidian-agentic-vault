@@ -169,6 +169,9 @@ def _check_frontmatter_problems(vault_dir: Path, notes: list[Path]) -> list[str]
             continue
         if parsed is not None and not isinstance(parsed, dict):
             problems.append(f"YAML frontmatter in {rel} must be a mapping, got {type(parsed).__name__}")
+        elif isinstance(parsed, dict) and 'lifecycle_schema' in parsed:
+            from session_distiller import lifecycle_problems
+            problems.extend(f'{rel}: {issue}' for issue in lifecycle_problems(raw))
     return problems
 
 
@@ -412,7 +415,7 @@ def catalogue_copilot():
 
     Reads copilot/copilot-conversations/ only. The transcript stays in the
     plugin folder. Skills and custom prompts are not read. A conversation
-    that already has a catalogue note is skipped.
+    that already has a catalogue note has only its source metadata refreshed.
     """
     from session_catalogue import catalogue_copilot_conversations
 
@@ -424,8 +427,79 @@ def catalogue_copilot():
         console.print(f"Already catalogued: {source}")
     for note in result.written:
         console.print(f"[bold green]Catalogued:[/bold green] {note.relative_to(layout.root).as_posix()}")
+    for note in result.updated:
+        console.print(f"[bold green]Source metadata refreshed:[/bold green] {note.relative_to(layout.root).as_posix()}")
     if result.problems and not result.written:
         raise typer.Exit(code=1)
+
+
+@app.command()
+def catalogue_sessions(
+    provider: str = typer.Option('all', '--provider', '-p'),
+    project: str = typer.Option(None, '--project'),
+    limit: int = typer.Option(50, '--limit', '-n'),
+):
+    """Catalogue pointers with per-source scan outcomes; limit applies to new notes."""
+    from lifecycle_service import execute
+    result = execute('catalogue', {'providers': provider.split(','), 'project': project, 'limit': limit}, _vault())
+    sys.stdout.write(json.dumps(result) + '\n')
+    if result['problems'] or any(o['status'] == 'error' for o in result['outcomes']):
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def prepare_session(
+    provider: str, session_id: str,
+    source_key: str = typer.Option(None, '--source-key'),
+    offset: int = typer.Option(0, '--offset'),
+    limit: int = typer.Option(30, '--limit'),
+):
+    """Read a page of revision-bound evidence for host-authored synthesis."""
+    from lifecycle_service import execute
+    result = execute('prepare', {'provider': provider, 'session_id': session_id,
+                                 'source_key': source_key, 'offset': offset, 'limit': limit}, _vault())
+    sys.stdout.write(json.dumps(result, ensure_ascii=False) + '\n')
+
+
+@app.command()
+def distill_session(
+    provider: str, session_id: str,
+    target_dir: str = typer.Option('25_Knowledge_Base', '--target-dir', '-d'),
+    kind: str = typer.Option('synthesis', '--kind', '-k'),
+    title: str = typer.Option(None, '--title', '-t'),
+    candidate: Path = typer.Option(None, '--candidate', help='Versioned evidence-linked candidate JSON file.'),
+    source_key: str = typer.Option(None, '--source-key'),
+    expected_revision: str = typer.Option(None, '--expected-revision'),
+    repair_references: bool = typer.Option(False, '--repair-references'),
+):
+    """Publish a draft; without a candidate this creates only explicit unknown sections."""
+    from session_providers import find_session
+    from session_distiller import submit_candidate
+    layout = _vault()
+    transcript = find_session(provider, session_id, layout.root, source_key)
+    draft = json.loads(candidate.read_text(encoding='utf-8')) if candidate else {
+        'schema_version': 1, 'source_key': transcript.record.source_key,
+        'source_revision': transcript.record.source_revision, 'kind': kind,
+        'title': title or transcript.record.topic, 'sections': {}}
+    result = submit_candidate(layout, transcript, draft, target_dir, expected_revision, repair_references=repair_references)
+    sys.stdout.write(json.dumps(result, ensure_ascii=False) + '\n')
+    if result['status'] == 'partial':
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def review_note(
+    path: str,
+    expected_revision: str = typer.Option(..., '--expected-revision'),
+    reviewer: str = typer.Option(..., '--reviewer'),
+    confirmed: bool = typer.Option(False, '--confirmed', help='Human has reviewed this exact preview.'),
+    revoke: bool = typer.Option(False, '--revoke'),
+):
+    """Record a human review of an exact artifact revision, or revoke it."""
+    from lifecycle_service import execute
+    result = execute('review', {'path': path, 'expected_revision': expected_revision,
+                                'reviewer': reviewer, 'human_confirmed': confirmed, 'revoke': revoke}, _vault())
+    sys.stdout.write(json.dumps(result) + '\n')
 
 
 # ---------- NEW COMMANDS ----------

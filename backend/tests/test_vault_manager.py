@@ -3,6 +3,8 @@
 import sys
 from pathlib import Path
 
+import yaml
+
 BACKEND_DIRECTORY = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BACKEND_DIRECTORY))
 
@@ -95,3 +97,15 @@ def test_blueprint_knowledge_base_has_registered_moc():
 
     assert moc_path == BLUEPRINT_VAULT / "00_MOCs" / "Knowledge_Base_MOC.md"
     assert moc_path.is_file()
+
+
+def test_distillation_templates_exist_and_have_valid_frontmatter():
+    templates_dir = BLUEPRINT_VAULT / "80_Templates"
+    for name in ("Troubleshooting_Template.md", "Session_Synthesis_Template.md", "ADR_Template.md"):
+        path = templates_dir / name
+        assert path.is_file(), f"Missing template: {name}"
+        text = path.read_text(encoding="utf-8")
+        assert text.startswith("---\n")
+        parts = text.split("---\n", 2)
+        data = yaml.safe_load(parts[1])
+        assert isinstance(data, dict) and "type" in data and "tags" in data

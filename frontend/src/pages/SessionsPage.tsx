@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
+import { KnowledgeDraft } from './KnowledgeDraft';
 import {
   History, Search, RefreshCcw, MessageSquare, User, Bot, Wrench,
   ChevronRight, Clock, HardDrive, Filter, X, ExternalLink,
   ZoomIn, ZoomOut, Archive
 } from 'lucide-react';
 import {
-  fetchSessions, fetchSessionDetail, backupSessions,
+  fetchSessions, fetchSessionDetail, backupSessions, lifecycleRequest, LifecycleCapabilities,
   SessionSummary, SessionDetail, SessionMessage, SessionProvider
 } from '../lib/vault';
 
@@ -131,10 +132,10 @@ function ChatBubble({ message, size = 'sm' }: { message: SessionMessage; size?: 
         <div className="max-w-[85%]">
           <div className="flex items-center gap-1.5 mb-1">
             <Wrench className="w-3 h-3 text-amber-400/70" />
-            <span className={`${font.meta} text-[var(--color-text-muted)] font-mono`}>tool call</span>
+            <span className={`${font.meta} text-[var(--color-text-muted)] font-mono`}>{message.kind || 'tool evidence'}</span>
           </div>
           <div className={`rounded-xl px-3 py-2 bg-amber-950/20 border border-amber-800/20 ${font.tool} font-mono text-amber-300/70 leading-relaxed whitespace-pre-wrap break-words max-h-32 overflow-y-auto`}>
-            {displayContent.slice(0, 500)}
+            {expanded ? message.content : message.content.slice(0, 500)}
             {message.content.length > 500 && !expanded && (
               <button onClick={() => setExpanded(!expanded)} className="block mt-1 text-amber-400 hover:text-amber-300">
                 …expand
@@ -177,6 +178,10 @@ function SessionDetailView({ session, onClose }: { session: SessionSummary; onCl
   const chatEndRef = useRef<HTMLDivElement>(null);
   const meta = PROVIDER_META[session.provider];
 
+  // Create / review knowledge state
+  const [distillOpen, setDistillOpen] = useState(false);
+  const [detailError, setDetailError] = useState('');
+
   // Font Zoom state
   const [textSize, setTextSize] = useState<'xs' | 'sm' | 'base' | 'lg' | 'xl'>('sm');
   const textSizes: ('xs' | 'sm' | 'base' | 'lg' | 'xl')[] = ['xs', 'sm', 'base', 'lg', 'xl'];
@@ -189,12 +194,25 @@ function SessionDetailView({ session, onClose }: { session: SessionSummary; onCl
   };
 
   useEffect(() => {
-    setLoading(true);
-    fetchSessionDetail(session.provider, session.id).then(data => {
-      setDetail(data);
-      setLoading(false);
+    let active = true;
+    setLoading(true); setDetail(null); setDetailError('');
+    fetchSessionDetail(session.provider, session.id, session.sourceKey).then(data => {
+      if (!active) return;
+      setDetail(data); setLoading(false);
+      if (!data) setDetailError('Transcript could not be loaded. Check the source availability.');
     });
-  }, [session.provider, session.id]);
+    return () => { active = false; };
+  }, [session.provider, session.id, session.sourceKey]);
+
+  const loadMore = async () => {
+    if (detail?.nextOffset == null) return;
+    const page = await fetchSessionDetail(session.provider, session.id, session.sourceKey, detail.nextOffset);
+    if (!page || page.record?.source_revision !== detail.record?.source_revision) {
+      setDetailError('Source changed or read failed. Reopen the session before continuing.');
+      return;
+    }
+    setDetail({ ...page, messages: [...detail.messages, ...page.messages] });
+  };
 
   useEffect(() => {
     if (detail && chatEndRef.current) {
@@ -240,6 +258,13 @@ function SessionDetailView({ session, onClose }: { session: SessionSummary; onCl
             </button>
           </div>
 
+          <button
+            onClick={() => setDistillOpen(!distillOpen)}
+            className="px-2.5 py-1 rounded-lg text-xs font-medium bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-300 transition-colors"
+            title="Distill this session into a structured Right Hemisphere Vault note"
+          >
+            Distill to Vault
+          </button>
           <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${meta.bgColor} ${meta.borderColor} border ${meta.color}`}>
             {meta.label}
           </span>
@@ -248,6 +273,13 @@ function SessionDetailView({ session, onClose }: { session: SessionSummary; onCl
           </button>
         </div>
       </div>
+
+      <p className="px-4 py-2 text-xs text-amber-300">
+        Source: {detail?.parseStatus || session.parseStatus || 'unqualified browsing'}
+        {detail?.diagnostics?.length ? ' — ' + detail.diagnostics.join('; ') : ''}
+      </p>
+      {detailError && <p role="alert" className="p-2 text-rose-400">{detailError}</p>}
+      {distillOpen && <KnowledgeDraft session={session} detail={detail} />}
 
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto p-4">
@@ -262,12 +294,16 @@ function SessionDetailView({ session, onClose }: { session: SessionSummary; onCl
           <>
             <div className="text-center mb-6">
               <span className="text-[10px] text-[var(--color-text-muted)] px-3 py-1 rounded-full bg-[var(--color-bg-tertiary)] border border-[var(--color-border)]">
-                {detail.messages.length} messages • {formatRelativeTime(session.startedAt)}
+                {detail.messages.length} of {detail.total || detail.messages.length} messages • {formatRelativeTime(session.startedAt)}
               </span>
             </div>
             {detail.messages.map((msg, i) => (
-              <ChatBubble key={i} message={msg} size={textSize} />
+              <div key={msg.evidence_id || i}>
+                {msg.evidence_id && <p className="text-[10px] text-[var(--color-text-muted)]">{msg.evidence_id} · {msg.kind} {msg.call_id && '· ' + msg.call_id}</p>}
+                <ChatBubble message={msg} size={textSize} />
+              </div>
             ))}
+            {detail.nextOffset != null && <button className="px-3 py-2 rounded bg-cyan-900" onClick={loadMore}>Load next evidence page</button>}
             <div ref={chatEndRef} />
           </>
         ) : (
@@ -309,10 +345,13 @@ export function SessionsPage() {
   const [cursorAvailable, setCursorAvailable] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
 
+  const [exportTargets, setExportTargets] = useState<string[]>([]);
+  const [scanMessage, setScanMessage] = useState('');
+
   // Backup state
   const [showBackupModal, setShowBackupModal] = useState(false);
   const [backupPath, setBackupPath] = useState('');
-  const [backupProviders, setBackupProviders] = useState<SessionProvider[]>(ALL_PROVIDERS);
+  const [backupProviders, setBackupProviders] = useState<SessionProvider[]>(['codex']);
   const [backupStatus, setBackupStatus] = useState<{ loading: boolean; success?: boolean; message?: string } | null>(null);
 
   const handleBackup = async (e: React.FormEvent) => {
@@ -331,7 +370,7 @@ export function SessionsPage() {
       setBackupStatus({ 
         loading: false, 
         success: false, 
-        message: result?.error || 'Backup failed. Check logs.' 
+        message: result?.error || result?.errors?.join('; ') || 'Export failed. Check source outcomes.'
       });
     }
   };
@@ -378,6 +417,7 @@ export function SessionsPage() {
         setSessions(data.sessions);
         setCursorAvailable(data.cursor_available);
         setTotalCount(data.total);
+        setScanMessage((data.outcomes || []).filter(o => o.status !== 'complete').map(o => `${o.provider}: ${o.error}`).join('; '));
       }
       setLoading(false);
     });
@@ -385,6 +425,10 @@ export function SessionsPage() {
 
   useEffect(() => {
     loadSessions();
+    lifecycleRequest<LifecycleCapabilities>('capabilities').then(data => {
+      setExportTargets(data.export_targets);
+      setBackupPath(data.export_targets[0] || '');
+    }).catch(error => setScanMessage(error.message));
   }, []);
 
   // Filter & sort
@@ -452,7 +496,7 @@ export function SessionsPage() {
       {/* Provider Filter Bar */}
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <Filter className="w-4 h-4 text-[var(--color-text-muted)]" />
-        {ALL_PROVIDERS.map(p => {
+        {(['codex'] as SessionProvider[]).map(p => {
           const meta = PROVIDER_META[p];
           const isActive = activeProviders.has(p);
           const count = providerCounts[p] || 0;
@@ -508,13 +552,14 @@ export function SessionsPage() {
         <button
           onClick={() => setShowBackupModal(true)}
           className="p-2 rounded-lg hover:bg-white/5 border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:border-cyan-500/50 hover:text-cyan-400 transition-all flex items-center gap-1.5 text-xs font-semibold"
-          title="Backup all sessions to a custom path"
+          title="Export qualified Codex evidence to a permitted vault directory"
         >
           <Archive className="w-4 h-4" />
           <span>Backup</span>
         </button>
       </div>
 
+      {scanMessage && <p role="status" className="text-xs text-amber-300">{scanMessage}</p>}
       {/* Main Content: Split panel */}
       <div 
         ref={containerRef} 
@@ -568,11 +613,11 @@ export function SessionsPage() {
             ) : (
               filteredSessions.map(session => {
                 const meta = PROVIDER_META[session.provider];
-                const isSelected = selectedSession?.id === session.id && selectedSession?.provider === session.provider;
+                const isSelected = selectedSession?.id === session.id && selectedSession?.provider === session.provider && selectedSession?.sourceKey === session.sourceKey;
 
                 return (
                   <button
-                    key={`${session.provider}-${session.id}`}
+                    key={session.sourceKey || `${session.provider}-${session.id}`}
                     onClick={() => setSelectedSession(session)}
                     className={`
                       w-full text-left px-4 py-3 flex items-center gap-3 transition-all hover:bg-white/[0.03]
@@ -623,6 +668,7 @@ export function SessionsPage() {
         >
           {selectedSession ? (
             <SessionDetailView
+              key={selectedSession.sourceKey || `${selectedSession.provider}-${selectedSession.id}`}
               session={selectedSession}
               onClose={() => setSelectedSession(null)}
             />
@@ -658,20 +704,15 @@ export function SessionsPage() {
             </h2>
             <form onSubmit={handleBackup} className="space-y-4">
               <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">
-                Export all session conversations for the selected providers to a local directory as clean Markdown files with YAML frontmatter.
+                Export complete Codex evidence to a permitted vault directory. Other providers remain browsing-only. These exports are not reviewed knowledge.
               </p>
               <div>
                 <label className="block text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-2">
-                  Target Backup Path
+                  Vault destination
                 </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. C:\Backup\MySessions"
-                  value={backupPath}
-                  onChange={(e) => setBackupPath(e.target.value)}
-                  className="w-full text-xs px-3 py-2.5 rounded-lg bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-cyan-500 transition-all placeholder:text-[var(--color-text-muted)]/45"
-                />
+                <select aria-label="Export destination" required value={backupPath} onChange={e => setBackupPath(e.target.value)} className="w-full text-xs px-3 py-2 bg-[var(--color-bg-tertiary)] border rounded">
+                  {exportTargets.map(target => <option key={target}>{target}</option>)}
+                </select>
               </div>
               
               <div>

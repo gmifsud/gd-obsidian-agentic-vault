@@ -3,8 +3,9 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import { exec } from 'child_process';
+import { exec, execFile } from 'child_process';
 import sessionsRouter from './sessions.js';
+import { engineCall, lifecycleError } from './lifecycle.js';
 import { readVaultLayout, VaultLayoutError, isHiddenEntry } from './vaultLayout.js';
 import { parseNote } from './note.js';
 
@@ -445,6 +446,18 @@ app.get('/api/system-files', (req, res) => {
     console.error('[Vault Server] Error reading system files:', error);
     res.status(500).json({ error: 'Failed to read system files' });
   }
+});
+
+// --- POST /api/sessions/distill ---
+app.post('/api/sessions/distill', async (req, res) => {
+  try {
+    const { provider, sessionId, sourceKey, targetDir, candidate, expectedRevision } = req.body || {};
+    const result = await engineCall('submit', { provider, session_id: sessionId, source_key: sourceKey,
+      target_dir: targetDir, candidate, expected_revision: expectedRevision }, vaultPath);
+    res.status(result.status === 'partial' ? 207 : 200).json({
+      ...result, success: result.status !== 'partial', notePath: result.path,
+    });
+  } catch (error) { lifecycleError(res, error); }
 });
 
 // --- POST /api/orchestrator/run ---

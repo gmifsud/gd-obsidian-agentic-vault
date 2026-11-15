@@ -1,6 +1,7 @@
 """Tests for heading-chunked FTS5 and optional vector search across the Right Hemisphere."""
 
 import sys
+import pytest
 from pathlib import Path
 
 BACKEND_DIRECTORY = Path(__file__).resolve().parent.parent
@@ -9,6 +10,7 @@ sys.path.insert(0, str(BACKEND_DIRECTORY))
 from knowledge_index import (  # noqa: E402
     NoteChunk,
     SearchHit,
+    build_task_briefing,
     chunk_markdown_note,
     collect_vault_chunks,
     index_vault_notes,
@@ -33,16 +35,17 @@ GitKraken Desktop fails to run Husky pre-commit hooks when Node is installed via
 GUI apps on Windows do not inherit the interactive shell PATH where fnm injects the Node binary.
 
 ## Solution
-Add a `~/.huskyrc` file that exports the fnm Node path before the hook runs.
+Add a `~/.huskyrc` file that exports the fnm Node path before the hook runs. See [[Git - PR Template]].
 """
 
 
 def test_chunk_markdown_note_splits_h2_sections_and_extracts_frontmatter():
     chunks = chunk_markdown_note("30_Git/Git - GitKraken Hooks Troubleshooting.md", SAMPLE_NOTE)
 
-    assert len(chunks) == 3
+    assert len(chunks) == 4
     assert all(isinstance(chunk, NoteChunk) for chunk in chunks)
-    assert [chunk.heading for chunk in chunks] == ["Problem", "Root Cause", "Solution"]
+    assert [chunk.heading for chunk in chunks] == ["GitKraken Hooks Troubleshooting", "Problem", "Root Cause", "Solution"]
+    assert '# GitKraken Hooks Troubleshooting' in chunks[0].content
     assert chunks[0].directory == "30_Git"
     assert chunks[0].doc_type == "git_resource"
     assert "husky" in chunks[0].tags
@@ -66,7 +69,8 @@ def test_fts5_search_finds_chunk_with_directory_and_tag_filter(tmp_path: Path):
     )
     index_vault_notes(db_path, chunks + other)
 
-    hits = search_vault_notes(db_path, "Husky pre-commit", directory="30_Git", tag="husky", limit=3)
+    assert search_vault_notes(db_path, "Husky pre-commit") == []  # legacy labels do not grant review
+    hits = search_vault_notes(db_path, "Husky pre-commit", directory="30_Git", tag="husky", limit=3, include_unreviewed=True)
 
     assert len(hits) >= 1
     assert isinstance(hits[0], SearchHit)
@@ -74,7 +78,7 @@ def test_fts5_search_finds_chunk_with_directory_and_tag_filter(tmp_path: Path):
     assert hits[0].heading == "Problem"
 
 
-def test_hybrid_search_accepts_optional_embedding_function(tmp_path: Path):
+def test_pilot_refuses_unqualified_vector_path(tmp_path: Path):
     db_path = tmp_path / "hybrid.db"
     chunks = chunk_markdown_note("30_Git/Git - GitKraken Hooks Troubleshooting.md", SAMPLE_NOTE)
 
@@ -88,11 +92,8 @@ def test_hybrid_search_accepts_optional_embedding_function(tmp_path: Path):
             ])
         return vectors
 
-    index_vault_notes(db_path, chunks, embed_fn=fake_embed)
-    hits = search_vault_notes(db_path, "huskyrc export", limit=2, embed_fn=fake_embed)
-
-    assert len(hits) >= 1
-    assert hits[0].heading == "Solution"
+    with pytest.raises(ValueError, match='outside the qualified lexical pilot'):
+        index_vault_notes(db_path, chunks, embed_fn=fake_embed)
 
 
 def test_collect_right_hemisphere_chunks_indexes_blueprint_vault(tmp_path: Path):
@@ -106,6 +107,27 @@ def test_collect_right_hemisphere_chunks_indexes_blueprint_vault(tmp_path: Path)
 
     db_path = tmp_path / "blueprint.db"
     index_vault_notes(db_path, chunks)
-    hits = search_vault_notes(db_path, "Kubernetes", directory="20_DevOps", limit=3)
+    hits = search_vault_notes(db_path, "Kubernetes", directory="20_DevOps", limit=3, include_unreviewed=True)
 
     assert any("Infra - Kubernetes Cluster" in hit.path for hit in hits)
+
+
+def test_build_task_briefing_returns_markdown_packet_with_snippets_and_links(tmp_path: Path):
+    db_path = tmp_path / "brief.db"
+    chunks = chunk_markdown_note("30_Git/Git - GitKraken Hooks Troubleshooting.md", SAMPLE_NOTE)
+    index_vault_notes(db_path, chunks, embed_fn=None)
+
+    brief = build_task_briefing(
+        db_path=db_path,
+        query="Husky pre-commit huskyrc",
+        directory=None,
+        tag=None,
+        limit=3,
+        embed_fn=None,
+        include_unreviewed=True,
+    )
+
+    assert "# Vault Context Briefing" in brief
+    assert "30_Git/Git - GitKraken Hooks Troubleshooting.md" in brief
+    assert "GitKraken Desktop fails to run Husky pre-commit hooks" in brief
+    assert "[[Git - PR Template]]" in brief

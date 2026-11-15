@@ -1,4 +1,4 @@
-"""Tests for cataloguing Obsidian Copilot conversations."""
+"""Tests for cataloguing Obsidian Copilot and multi-harness conversations."""
 
 import sys
 from pathlib import Path
@@ -7,7 +7,8 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from session_catalogue import catalogue_copilot_conversations  # noqa: E402
+from session_catalogue import catalogue_copilot_conversations, catalogue_records  # noqa: E402
+from session_providers import SessionRecord  # noqa: E402
 from vault_layout import CONFIG_FILENAME, VaultLayout  # noqa: E402
 
 CONVERSATION = """---
@@ -92,6 +93,15 @@ def test_a_skill_note_is_not_catalogued(tmp_path):
     assert list((layout.root / "35_Sessions").glob("*.md")) == []
 
 
+def test_refresh_refuses_alias_edits_that_would_change_human_fields():
+    import pytest
+    from session_catalogue import update_catalogue_fields
+    for front in ('custom: &owner old\nsource_revision: *owner\n',
+                  'source_revision: &owner old\ncustom: *owner\n'):
+        with pytest.raises(ValueError, match='Anchored/aliased'):
+            update_catalogue_fields('---\n' + front + '---\nHuman body\n', {'source_revision': 'new'})
+
+
 def test_invalid_frontmatter_is_reported_and_skipped(tmp_path):
     layout = _vault(tmp_path)
     _write_conversation(layout.root, "broken.md", "---\ntopic: *Summary:** broken\n---\n")
@@ -101,3 +111,34 @@ def test_invalid_frontmatter_is_reported_and_skipped(tmp_path):
     assert result.written == []
     assert result.problems
     assert "broken.md" in result.problems[0]
+
+
+def test_catalogue_records_writes_multi_provider_notes_and_deduplicates_by_session_id(tmp_path):
+    layout = _vault(tmp_path)
+    records = [
+        SessionRecord(
+            provider="claude",
+            session_id="abc-111",
+            project="gd-obsidian-agentic-vault",
+            topic="Refactor Vault Layout",
+            model="claude-sonnet-4",
+            started_at="2026-11-14T10:00:00Z",
+            last_modified="2026-11-14T10:30:00Z",
+            message_count=12,
+            size_bytes=4096,
+            source_path="C:/Users/test/.claude/projects/abc-111.jsonl",
+        )
+    ]
+
+    first = catalogue_records(layout, records)
+    assert len(first.written) == 1
+    assert first.written[0].name == "Claude - Refactor Vault Layout.md"
+    text = first.written[0].read_text(encoding="utf-8")
+    assert "harness: claude" in text
+    assert "session_id: abc-111" in text
+    assert "distilled: false" in text
+    assert "[[Claude - Refactor Vault Layout]]" in (layout.root / "00_MOCs" / "Sessions_MOC.md").read_text(encoding="utf-8")
+
+    second = catalogue_records(layout, records)
+    assert second.written == []
+    assert len(second.skipped) == 1

@@ -1,17 +1,14 @@
 import typer
 from rich.console import Console
-import requests
-import os
 import sys
 import io
 import re
 import json
-import sqlite3
+from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from datetime import datetime
 
-from knowledge_index import collect_vault_chunks, index_vault_notes, search_vault_notes
+from knowledge_index import brief_current, search_current, ensure_index
 from vault_layout import VaultLayout, VaultLayoutError, load_engine_vault
 
 # Force UTF-8 encoding for standard output/error on Windows to prevent UnicodeEncodeError
@@ -23,20 +20,8 @@ if sys.platform.startswith("win"):
         except (AttributeError, io.UnsupportedOperation):
             pass
 
-# Optional imports with warning fallbacks
-try:
-    import sqlite_vec
-except ImportError:
-    sqlite_vec = None
 
-try:
-    from fastembed import TextEmbedding
-    import numpy as np
-except ImportError:
-    TextEmbedding = None
-    np = None
-
-app = typer.Typer(help="Query Manager: Execute background tasks, sync APIs, and run semantic search.")
+app = typer.Typer(help="Query Manager: Local maintenance and fresh, reviewed lexical context.")
 console = Console()
 
 err_console = Console(stderr=True)
@@ -62,201 +47,114 @@ def _require_write_permission(layout: VaultLayout, path: Path | str) -> None:
         raise typer.Exit(code=1)
 
 
-DB_PATH = Path(__file__).resolve().parent / "vault_vectors.db"
-
-EMBED_INSTALL_HINT = (
-    "[bold yellow]Install the required packages with:[/bold yellow]\n"
-    "  pip install fastembed numpy sqlite-vec"
-)
-
-
-def get_connection():
-    conn = sqlite3.connect(DB_PATH)
-    vec_loaded = False
-    
-    # Try loading sqlite-vec extension
-    if sqlite_vec is not None:
-        try:
-            conn.enable_load_extension(True)
-            sqlite_vec.load(conn)
-            conn.enable_load_extension(False)
-            vec_loaded = True
-        except Exception as e:
-            console.print(f"[yellow]Notice: sqlite-vec failed to load ({e}). Using Python vector fallback.[/yellow]")
-    else:
-        console.print("[yellow]Notice: sqlite_vec module not found. Using Python vector fallback.[/yellow]")
-        
-    # Create standard table
-    conn.execute("""
-    CREATE TABLE IF NOT EXISTS documents (
-        path TEXT PRIMARY KEY,
-        title TEXT,
-        content TEXT,
-        embedding BLOB
-    )
-    """)
-    
-    # Create virtual table for sqlite-vec if loaded
-    if vec_loaded:
-        try:
-            conn.execute("""
-            CREATE VIRTUAL TABLE IF NOT EXISTS vec_documents USING vec0(
-                path TEXT PRIMARY KEY,
-                embedding float[384]
-            )
-            """)
-        except Exception as e:
-            console.print(f"[yellow]Failed to create virtual table: {e}. Falling back to standard table.[/yellow]")
-            vec_loaded = False
-            
-    conn.commit()
-    return conn, vec_loaded
-
-
 @app.command()
 def calendar(timeframe: str = "today"):
     """Fetch calendar events (not yet configured)."""
     console.print("[yellow]Calendar integration not yet configured.[/yellow]")
-    console.print("To enable, set CALENDAR_API_URL in your .env file.")
+    console.print("Calendar integration requires implementation before it can be enabled.")
 
 
 @app.command()
 def sync_notebooklm(file_path: str):
-    """Sync a specific markdown file to NotebookLM via n8n webhook or API."""
-    console.print(f"[bold yellow]Syncing {file_path} to NotebookLM...[/bold yellow]")
-    
-    target_path = Path(file_path).resolve()
-    if not target_path.exists():
-        # Try relative to VAULT_DIR
-        target_path = (_vault().root / file_path).resolve()
-        if not target_path.exists():
-            console.print(f"[bold red]Error: File {file_path} does not exist.[/bold red]")
-            raise typer.Exit(code=1)
-        
-    with open(target_path, 'r', encoding='utf-8') as f:
-        content = f.read()
-        
-    # Example: Push to a local n8n webhook that handles the NotebookLM API integration
-    webhook_url = os.getenv("N8N_NOTEBOOKLM_WEBHOOK_URL", "http://localhost:5678/webhook/notebooklm-sync")
-    
-    try:
-        # Simulated payload send
-        console.print(f"  [green]✓[/green] Successfully synced {target_path.name} to NotebookLM!")
-    except Exception as e:
-        console.print(f"  [red]✗[/red] Failed to sync to NotebookLM: {e}")
+    """Reserved integration; no remote synchronisation is implemented."""
+    sys.stdout.write(json.dumps({'status': 'skipped', 'reason': 'NotebookLM sync not implemented', 'path': file_path}) + '\n')
+
+
+MEMORY_ARCHIVE_RELATIVE = Path("35_Sessions") / "Memory_Ledger_Archive.md"
+
+
+@dataclass(frozen=True)
+class MemoryCompactResult:
+    kept_count: int
+    archived_count: int
+    archive_path: Path | None
+
+
+def compact_memory_file(layout: VaultLayout, keep: int = 5) -> MemoryCompactResult:
+    """Persist complete log blocks before trimming; failures preserve MEMORY."""
+    from vault_io import vault_lock, preflight, fingerprint, atomic_write, digest, moc_text
+    if keep < 1:
+        raise ValueError("keep must be positive")
+    memory = layout.root / "MEMORY.md"
+    if not memory.is_file():
+        return MemoryCompactResult(0, 0, None)
+    with vault_lock(layout):
+        original_hash = fingerprint(memory)
+        lines = memory.read_text(encoding="utf-8").splitlines(keepends=True)
+        start = next((i + 1 for i, line in enumerate(lines) if line.startswith("## 📜 Rolling Log")), None)
+        if start is None:
+            return MemoryCompactResult(0, 0, None)
+        end, entries, fence = len(lines), [], None
+        for i in range(start, len(lines)):
+            marker = re.match(r"^\s*(`{3,}|~{3,})", lines[i])
+            if marker:
+                token = marker.group(1)
+                if fence is None:
+                    fence = token
+                elif token[0] == fence[0] and len(token) >= len(fence):
+                    fence = None
+                continue
+            if fence is None and lines[i].startswith("## "):
+                end = i
+                break
+            if fence is None and lines[i].startswith("- "):
+                entries.append(i)
+        if len(entries) <= keep:
+            return MemoryCompactResult(len(entries), 0, None)
+        boundaries = entries + [end]
+        blocks = ["".join(lines[a:b]) for a, b in zip(boundaries, boundaries[1:])]
+        archive = layout.root / MEMORY_ARCHIVE_RELATIVE
+        moc = layout.moc_for(archive)
+        preflight(layout, [memory, archive] + ([moc] if moc else []))
+        archive_revision = fingerprint(archive)
+        old = archive.read_text(encoding="utf-8") if archive.exists() else "---\ntype: memory-archive\ntags: [memory, archive]\n---\n# Memory Ledger Archive\n\n"
+        updated, added = old, 0
+        for block in blocks[:-keep]:
+            marker = "<!-- entry:" + digest(block) + " -->\n"
+            if marker not in updated:
+                updated += marker + block + ("\n" if not block.endswith("\n") else "")
+                added += 1
+        if updated != old:
+            atomic_write(layout, archive, updated, archive_revision)
+        if archive.read_text(encoding="utf-8") != updated:
+            raise OSError("Archive verification failed; MEMORY unchanged")
+        if moc:
+            moc_revision = fingerprint(moc)
+            current = moc.read_text(encoding="utf-8") if moc.exists() else "# Sessions\n"
+            changed = moc_text(current, archive.stem, "Memory Ledger Archive")
+            if changed != current:
+                atomic_write(layout, moc, changed, moc_revision)
+        result = "".join(lines[:entries[0]]) + "".join(blocks[-keep:]) + "".join(lines[end:])
+        atomic_write(layout, memory, result, original_hash)
+        return MemoryCompactResult(keep, added, archive)
 
 
 @app.command()
 def compact():
-    """Compact the MEMORY.md file by retaining only the 5 most recent rolling logs."""
+    """Compact MEMORY.md to the 5 most recent Rolling Log entries and archive evicted ones."""
     console.print("[bold magenta]Compacting memory...[/bold magenta]")
-    memory_path = _vault().root / "MEMORY.md"
+    layout = _vault()
+    memory_path = layout.root / "MEMORY.md"
     if not memory_path.exists():
         console.print("[bold red]MEMORY.md not found[/bold red]")
         return
-    _require_write_permission(_vault(), memory_path)
-
-    with open(memory_path, "r", encoding="utf-8") as f:
-        lines = f.readlines()
-
-    new_lines = []
-    in_rolling_log = False
-    rolling_log_bullets = []
-
-    for line in lines:
-        if "## 📜 Rolling Log" in line:
-            in_rolling_log = True
-            new_lines.append(line)
-            continue
-        elif in_rolling_log and line.strip().startswith("##"):
-            # End of rolling log section, reached next section
-            in_rolling_log = False
-
-        if in_rolling_log:
-            if line.strip().startswith("-"):
-                rolling_log_bullets.append(line)
-        else:
-            new_lines.append(line)
-
-    # Keep only the latest 5 bullets
-    compacted_bullets = rolling_log_bullets[-5:] if len(rolling_log_bullets) > 5 else rolling_log_bullets
-
-    header_idx = -1
-    for i, line in enumerate(new_lines):
-        if "## 📜 Rolling Log" in line:
-            header_idx = i
-            break
-
-    if header_idx != -1:
-        # Re-insert the bullets preserving order
-        for bullet in reversed(compacted_bullets):
-            new_lines.insert(header_idx + 1, bullet)
-
-    with open(memory_path, "w", encoding="utf-8") as f:
-        f.writelines(new_lines)
-
-    console.print(f"[bold green]Compacted memory to {len(compacted_bullets)} log entries.[/bold green]")
+    res = compact_memory_file(layout, keep=5)
+    console.print(
+        f"[bold green]Compacted memory to {res.kept_count} log entries (archived {res.archived_count}).[/bold green]"
+    )
 
 
 @app.command()
 def heartbeat():
-    """Execute background heartbeat tasks (check APIs, compact memory, scan drafts)."""
-    console.print("[bold magenta]Executing heartbeat tasks...[/bold magenta]")
-    
-    # 1. Check APIs
-    user_md_path = _vault().root / "USER.md"
-    calendar_active = False
-    if user_md_path.exists():
-        with open(user_md_path, "r", encoding="utf-8") as f:
-            user_data = f.read()
-            if "calendar: active" in user_data:
-                calendar_active = True
-    console.print(f"  [green]✓[/green] Checked APIs. Calendar active: {calendar_active}")
-
-    # 2. Compact Memory
-    compact()
-
-    # 3. Check Drafts (15_Prototype_Designs)
-    drafts_dir = _vault().root / "15_Prototype_Designs"
-    wips = []
-    if drafts_dir.exists():
-        wips = [f.name for f in drafts_dir.glob("*.md") if f.name != "README.md"]
-    console.print(f"  [green]✓[/green] Checked Drafts. WIPs found: {wips}")
-
-    # 4. Sync Knowledge Base (25_Knowledge_Base)
-    kb_dir = _vault().root / "25_Knowledge_Base"
-    kb_files = []
-    if kb_dir.exists():
-        kb_files = [f.name for f in kb_dir.glob("*.md") if f.name != "README.md"]
-    console.print(f"  [green]✓[/green] Synced Knowledge Base. Found {len(kb_files)} resources.")
-
-    # 5. Notify
-    console.print("  [green]✓[/green] Sent notification: Heartbeat successful.")
-
-    # Update HEARTBEAT.md checkbox status
-    heartbeat_path = _vault().root / "HEARTBEAT.md"
-    if heartbeat_path.exists():
-        _require_write_permission(_vault(), heartbeat_path)
-        with open(heartbeat_path, "r", encoding="utf-8") as f:
-            hb_content = f.read()
-
-        hb_content = hb_content.replace("- [ ] Check APIs", "- [x] Check APIs")
-        hb_content = hb_content.replace("- [ ] Compact Memory", "- [x] Compact Memory")
-        hb_content = hb_content.replace("- [ ] Check Drafts", "- [x] Check Drafts")
-        hb_content = hb_content.replace("- [ ] Sync Knowledge Base", "- [x] Sync Knowledge Base")
-        hb_content = hb_content.replace("- [ ] Notify", "- [x] Notify")
-
-        # Append or replace timestamp line
-        timestamp_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        timestamp_line = f"Last run: {timestamp_str}"
-        # Remove existing timestamp line if present
-        hb_content = re.sub(r"\n?Last run: \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\s*$", "", hb_content)
-        # Append new timestamp
-        hb_content = hb_content.rstrip() + f"\n\n{timestamp_line}\n"
-
-        with open(heartbeat_path, "w", encoding="utf-8") as f:
-            f.write(hb_content)
-        console.print("[bold green]Updated HEARTBEAT.md checklist with all checks successfully completed![/bold green]")
+    """Run implemented local work and report every unimplemented action honestly."""
+    layout = _vault()
+    result = compact_memory_file(layout, keep=5)
+    drafts = layout.root / '15_Prototype_Designs'
+    report = {'api_checks': 'skipped: not implemented',
+              'compaction': {'kept': result.kept_count, 'archived': result.archived_count},
+              'draft_count': len(list(drafts.glob('*.md'))) if drafts.is_dir() else 0,
+              'knowledge_sync': 'skipped: not implemented', 'notification': 'skipped: not implemented'}
+    sys.stdout.write(json.dumps(report) + '\n')
 
 
 @app.command()
@@ -284,73 +182,46 @@ def reset_heartbeat():
     console.print("[bold green]HEARTBEAT.md has been reset. All items unchecked, timestamp removed.[/bold green]")
 
 
-def _optional_embed_fn():
-    """Return a fastembed wrapper when fastembed is installed, or None for pure FTS5 mode."""
-    if TextEmbedding is None:
-        return None
-    model = TextEmbedding()
-
-    def _embed(texts: list[str]) -> list[list[float]]:
-        return [[float(x) for x in vec] for vec in model.embed(texts)]
-
-    return _embed
-
-
 @app.command()
 def embed():
-    """Index all Right Hemisphere Markdown notes into SQLite FTS5 (and optional vectors)."""
-    layout = _vault()
-    chunks = collect_vault_chunks(layout)
-    if not chunks:
-        console.print("[yellow]No indexable Markdown chunks found in the Right Hemisphere.[/yellow]")
-        return
-
-    embed_fn = _optional_embed_fn()
-    if embed_fn is None:
-        console.print("[yellow]fastembed not installed — building FTS5 lexical index only.[/yellow]")
-    else:
-        console.print("[bold blue]Building hybrid FTS5 + vector index with fastembed...[/bold blue]")
-
-    count = index_vault_notes(DB_PATH, chunks, embed_fn=embed_fn)
-    note_count = len({chunk.path for chunk in chunks})
-    console.print(
-        f"[bold green]Indexed {count} section chunks across {note_count} Right Hemisphere notes.[/bold green]"
-    )
+    """Refresh the vault-owned lexical index; no model downloads."""
+    _, metrics = ensure_index(_vault())
+    sys.stdout.write(json.dumps(metrics) + '\n')
 
 
 @app.command()
 def search(
     query_text: str,
     limit: int = 5,
-    directory: str = typer.Option(None, "--directory", "-d", help="Restrict search to one Vault directory."),
-    tag: str = typer.Option(None, "--tag", "-t", help="Restrict search to notes carrying this frontmatter tag."),
+    directory: str = typer.Option(None, '--directory', '-d'),
+    tag: str = typer.Option(None, '--tag', '-t'),
+    repo: str = typer.Option(None, '--repo'),
+    include_unreviewed: bool = typer.Option(False, '--include-unreviewed'),
 ):
-    """Search the indexed Right Hemisphere chunks via FTS5 BM25 and optional vector similarity."""
-    layout = _vault()
-    if not DB_PATH.is_file():
-        chunks = collect_vault_chunks(layout)
-        index_vault_notes(DB_PATH, chunks, embed_fn=_optional_embed_fn())
+    """Search current reviewed knowledge; diagnostic inclusion is explicit."""
+    from dataclasses import asdict
+    hits, freshness = search_current(_vault(), query_text, directory=directory, tag=tag,
+                                     limit=limit, repo=repo, include_unreviewed=include_unreviewed)
+    sys.stdout.write(json.dumps({'hits': [asdict(h) for h in hits], 'freshness': freshness}) + '\n')
 
-    hits = search_vault_notes(
-        DB_PATH,
-        query_text,
-        directory=directory,
-        tag=tag,
-        limit=limit,
-        embed_fn=_optional_embed_fn(),
-    )
-    if not hits:
-        console.print("[yellow]No matches found.[/yellow]")
-        return
 
-    console.print(f"\n[bold green]Top {len(hits)} Matches:[/bold green]")
-    for hit in hits:
-        console.print(
-            f"  * [bold]{hit.title}[/bold] :: [cyan]{hit.heading}[/cyan] (Score: {hit.score:.4f})"
-        )
-        console.print(f"    Path: [dim]{hit.path}[/dim]")
-        if hit.snippet:
-            console.print(f"    Snippet: {hit.snippet}")
+@app.command()
+def brief(
+    query_text: str,
+    limit: int = typer.Option(5, '--limit', '-n'),
+    directory: str = typer.Option(None, '--directory', '-d'),
+    tag: str = typer.Option(None, '--tag', '-t'),
+    repo: str = typer.Option(None, '--repo'),
+    include_unreviewed: bool = typer.Option(False, '--include-unreviewed'),
+    max_chars: int = typer.Option(12000, '--max-chars'),
+    include_memory: bool = typer.Option(False, '--include-memory'),
+    neighbours: bool = typer.Option(False, '--neighbours'),
+):
+    """Bounded briefing from fresh, scoped and currently reviewed notes."""
+    packet, _ = brief_current(_vault(), query_text, directory=directory, tag=tag, limit=limit,
+                              repo=repo, include_unreviewed=include_unreviewed, max_chars=max_chars,
+                              include_memory=include_memory, neighbours=neighbours)
+    sys.stdout.write(packet)
 
 
 if __name__ == "__main__":
