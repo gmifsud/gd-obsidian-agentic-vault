@@ -4,80 +4,39 @@
     "type": "split",
     "children": [
       {
-        "id": "0ed5e142430413cd",
-        "type": "split",
+        "id": "535093604a354e3d",
+        "type": "tabs",
         "children": [
           {
-            "id": "f3e35e4638eb5a4c",
-            "type": "tabs",
-            "dimension": 67.07717569786536,
-            "children": [
-              {
-                "id": "5c546bd7620a5b92",
-                "type": "leaf",
-                "state": {
-                  "type": "markdown",
-                  "state": {
-                    "file": "file:D:/Users/grego/Documents/Obsidian/Knowledge/Work/Projects/EYESEL/Efficient Data Wrapper Solution for Clarion to Azu.md",
-                    "mode": "source",
-                    "source": true
-                  },
-                  "icon": "lucide-file",
-                  "title": "Efficient Data Wrapper Solution for Clarion to Azu"
-                }
+            "id": "65b99d0c874c13b1",
+            "type": "leaf",
+            "pinned": true,
+            "state": {
+              "type": "ace-snippets-editor",
+              "state": {
+                "file": "zz-custom-fonts.css"
               },
-              {
-                "id": "eef1eeaa6d5d4cfd",
-                "type": "leaf",
-                "state": {
-                  "type": "release-notes",
-                  "state": {
-                    "currentVersion": "1.15.1"
-                  },
-                  "icon": "lucide-book-up",
-                  "title": "Release Notes 1.15.1"
-                }
-              },
-              {
-                "id": "d7639d3fb140cf6b",
-                "type": "leaf",
-                "state": {
-                  "type": "webviewer",
-                  "state": {
-                    "url": "https://github.com/gmifsud/external-vault/tree/main/docs",
-                    "title": "external-vault/docs at main · gmifsud/external-vault",
-                    "mode": "webview"
-                  },
-                  "icon": "globe-2",
-                  "title": "external-vault/docs at main · gmifsud/external-vault"
-                }
-              }
-            ],
-            "currentTab": 2
+              "pinned": true,
+              "icon": "code-xml",
+              "title": "Snippets editor"
+            }
           },
           {
-            "id": "535093604a354e3d",
-            "type": "tabs",
-            "dimension": 32.92282430213464,
-            "children": [
-              {
-                "id": "65b99d0c874c13b1",
-                "type": "leaf",
-                "pinned": true,
-                "state": {
-                  "type": "ace-snippets-editor",
-                  "state": {
-                    "file": "zz-custom-fonts.css"
-                  },
-                  "pinned": true,
-                  "icon": "code-xml",
-                  "title": "Snippets editor"
-                }
-              }
-            ]
+            "id": "fd4e38da2a902a4e",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "25_Knowledge_Base/README.md",
+                "mode": "source",
+                "source": true
+              },
+              "icon": "lucide-file",
+              "title": "README"
+            }
           }
         ],
-        "direction": "horizontal"
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -146,8 +105,7 @@
               "title": "Context workspaces"
             }
           }
-        ],
-        "currentTab": 3
+        ]
       },
       {
         "id": "3a85de1b5afd5199",
@@ -160,6 +118,7 @@
             "state": {
               "type": "outline",
               "state": {
+                "file": "25_Knowledge_Base/README.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -281,7 +240,9 @@
             "type": "leaf",
             "state": {
               "type": "footnotes",
-              "state": {},
+              "state": {
+                "file": "25_Knowledge_Base/README.md"
+              },
               "icon": "lucide-file-signature",
               "title": "Footnotes"
             }
@@ -314,9 +275,14 @@
       "workspaces:Manage workspace layouts": false
     }
   },
-  "active": "d7639d3fb140cf6b",
+  "active": "17ecfcf82b4c1f4a",
   "lastOpenFiles": [
     "file:D:/Users/grego/Documents/Obsidian/Knowledge/Work/Projects/EYESEL/Efficient Data Wrapper Solution for Clarion to Azu.md",
+    "35_Sessions/Copilot - Render Obsidian URL in Obsidian.md",
+    "35_Sessions/Copilot - Mermaid diagram orthogonal lines and layout styling.md",
+    "35_Sessions/README.md",
+    "35_Sessions",
+    "00_MOCs/Sessions_MOC.md",
     "00_MOCs/Git_MOC.md",
     "10_Repositories/Projects/Tools.Harness/EXECUTION_PLAN.md.tmp.18916.a1a4232905c0",
     "10_Repositories/Projects/QiSL.Platform/Backend.Host/MultiTenant/Repository/docs/tenant-isolation/2026-11-14-WP-04-LOB-Adapters-Implementation.md",
@@ -337,7 +303,6 @@
     "10_Repositories/Projects/QiSL.Platform/Backend.Host/MultiTenant/Repository/docs/tenant-isolation/2026-11-13-WP-03a-Closeout-and-FB20-Trace.md",
     "10_Repositories/Projects/Tools.Harness/EXECUTION_PLAN.md.tmp.9312.c32aeb948d9c",
     "10_Repositories/Projects/Tools.Harness/EXECUTION_PLAN.md.tmp.9312.9d531e9509d7",
-    "10_Repositories/Projects/Tools.Harness/EXECUTION_PLAN.md.tmp.9312.5b41ea4cc9ec",
     "00_MOCs/Assets_MOC.md",
     "10_Repositories/ISL.Azure.Licensing/Repo/ISL.Azure.Licensing/docs/architecture/04-authentication-flows-v2.md",
     "copilot/skills/json-canvas/SKILL.md",
@@ -348,10 +313,6 @@
     "copilot/skills/obsidian-markdown/SKILL.md",
     "copilot/skills/obsidian-markdown/references/PROPERTIES.md",
     "copilot/skills/obsidian-markdown/references/EMBEDS.md",
-    "copilot/skills/obsidian-markdown/references/CALLOUTS.md",
-    "copilot/skills/copilot-fetch-x/SKILL.md",
-    "copilot/skills/copilot-youtube-transcript/SKILL.md",
-    "copilot/skills/copilot-web-fetch/SKILL.md",
     "10_Repositories/ISL.Azure.Licensing/Repo/ISL.Azure.Licensing/src/QiSL.Fabric/Platform/aspnet-core/test/QiSL.Platform.Tests/bin/Debug/net10.0/EmptyFiles/image/empty.webp",
     "10_Repositories/ISL.Azure.Licensing/Repo/ISL.Azure.Licensing/src/QiSL.Fabric/Platform/aspnet-core/test/QiSL.Platform.Tests/bin/Debug/net10.0/EmptyFiles/image/empty.png",
     "10_Repositories/ISL.Azure.Licensing/Repo/ISL.Azure.Licensing/src/QiSL.Fabric/Platform/aspnet-core/test/QiSL.Platform.Tests/bin/Debug/net10.0/EmptyFiles/image/empty.jpg",

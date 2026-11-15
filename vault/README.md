@@ -16,4 +16,4 @@ Before writing a path, check it from the repository root:
 .\backend\venv\Scripts\python.exe backend\vault_manager.py may-write 30_Git/note.md
 ```
 
-`01_Journal/` and `02_Human_Thoughts/` are read-only, apart from `01_Journal/Reviews/`. `copilot/` and `Connections/` belong to other tools. Dot-files and dot-directories are ignored at any depth.
+`01_Journal/` and `02_Human_Thoughts/` are read-only, apart from `01_Journal/Reviews/`. `copilot/` belongs to the Obsidian Copilot plugin. Dot-files and dot-directories are ignored at any depth.

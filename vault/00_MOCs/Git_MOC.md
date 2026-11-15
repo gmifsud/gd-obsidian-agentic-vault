@@ -6,7 +6,6 @@ agent_summary: "Index of Git workflows, branching strategies, and PR templates."
 # Git MOC
 
 ## Workflows & Strategies
-- [[30_Git/Git - Feature Branching|Feature Branching Workflow]] - `prerequisites: [Issue Tracker Ticket]`
 - [[30_Git/Git - Hotfix Workflow|Hotfix Workflow]] - **Purpose:** Emergency process for patching critical production issues directly from the main branch. | **Prerequisites:** `[Production Incident]`
 - [[30_Git/Git - PR Template|Standard PR Template]] - `prerequisites: []`
 

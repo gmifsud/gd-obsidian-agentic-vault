@@ -27,6 +27,7 @@ These directories contain agent-authored structured knowledge, templates, MOCs, 
 - `vault/20_DevOps/`
 - `vault/25_Knowledge_Base/`
 - `vault/30_Git/`
+- `vault/35_Sessions/`
 - `vault/40_Agent_Skills/`
 - `vault/50_Databases/`
 - `vault/60_Canvas_Maps/`
@@ -38,7 +39,7 @@ Static files (images, diagrams, PDFs) referenced by notes. Not part of either He
 - `vault/90_Assets/`
 
 ### 🚫 Unmanaged Directories (DO NOT READ OR WRITE)
-`vault/copilot/` and `vault/Connections/` belong to other tools. Leave them alone.
+`vault/copilot/` belongs to the Obsidian Copilot plugin. Leave it alone.
 
 The authoritative layout is `vault/vault.config.yaml`. Check any path with `python backend/vault_manager.py may-write <path>`.
 

@@ -14,8 +14,9 @@ layout:
     10_Repositories:      { zone: right,  agent_writable: true,  moc: Repositories_MOC.md }
     15_Prototype_Designs: { zone: right,  agent_writable: true,  moc: null }
     20_DevOps:            { zone: right,  agent_writable: true,  moc: DevOps_MOC.md }
-    25_Knowledge_Base:    { zone: right,  agent_writable: true,  moc: null }
+    25_Knowledge_Base:    { zone: right,  agent_writable: true,  moc: Knowledge_Base_MOC.md }
     30_Git:               { zone: right,  agent_writable: true,  moc: Git_MOC.md }
+    35_Sessions:          { zone: right,  agent_writable: true,  moc: Sessions_MOC.md }
     40_Agent_Skills:      { zone: right,  agent_writable: true,  moc: null }
     50_Databases:         { zone: right,  agent_writable: true,  moc: null }
     60_Canvas_Maps:       { zone: right,  agent_writable: true,  moc: null }
@@ -29,7 +30,6 @@ layout:
   # Directories owned by other tools. The Engine never writes there; the Control Panel never reads there.
   unmanaged:
     - copilot
-    - Connections
 
   # Markdown files allowed at the Vault root. Any other Markdown file there fails validation.
   system_files:

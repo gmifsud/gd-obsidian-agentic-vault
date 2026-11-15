@@ -2,6 +2,10 @@ import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { fileURLToPath } from 'url';
+import { discoverCopilotSessions, getCopilotSessionDetail } from './copilotSessions.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const router = express.Router();
 
@@ -15,6 +19,11 @@ function resolveEnvPath(envKey, defaultPath) {
     return envValue.replace(/%USERPROFILE%/gi, os.homedir()).replace(/%APPDATA%/gi, process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming'));
   }
   return defaultPath;
+}
+
+function copilotConversationsDir() {
+  const vaultPath = path.resolve(__dirname, process.env.VAULT_PATH || '../vault');
+  return path.join(vaultPath, 'copilot', 'copilot-conversations');
 }
 
 function getSessionPaths() {
@@ -781,7 +790,7 @@ router.get('/api/sessions', (req, res) => {
 
   const providers = providerFilter
     ? providerFilter.split(',').map(p => p.trim().toLowerCase())
-    : ['claude', 'codex', 'cursor', 'gemini', 'kilocode'];
+    : ['claude', 'codex', 'cursor', 'gemini', 'kilocode', 'copilot'];
 
   if (providers.includes('claude')) {
     allSessions = allSessions.concat(discoverClaudeSessions(paths.claude));
@@ -797,6 +806,9 @@ router.get('/api/sessions', (req, res) => {
   }
   if (providers.includes('kilocode')) {
     allSessions = allSessions.concat(discoverKiloCodeSessions(paths.kilocode));
+  }
+  if (providers.includes('copilot')) {
+    allSessions = allSessions.concat(discoverCopilotSessions(copilotConversationsDir()));
   }
 
   // Sort by lastModified descending
@@ -832,6 +844,9 @@ router.get('/api/sessions/:provider/:id', (req, res) => {
     case 'kilocode':
       detail = getKiloCodeSessionDetail(paths.kilocode, id);
       break;
+    case 'copilot':
+      detail = getCopilotSessionDetail(copilotConversationsDir(), id);
+      break;
     default:
       return res.status(400).json({ error: `Unknown provider: ${provider}` });
   }
@@ -851,7 +866,7 @@ async function executeBackup(providersList, targetPath) {
   const paths = getSessionPaths();
   const activeProviders = Array.isArray(providersList) && providersList.length > 0
     ? providersList.map(p => p.toLowerCase())
-    : ['claude', 'codex', 'cursor', 'gemini', 'kilocode'];
+    : ['claude', 'codex', 'cursor', 'gemini', 'kilocode', 'copilot'];
 
   let backedUpCount = 0;
   const errors = [];
@@ -883,6 +898,9 @@ async function executeBackup(providersList, targetPath) {
       case 'kilocode':
         sessions = discoverKiloCodeSessions(paths.kilocode);
         break;
+      case 'copilot':
+        sessions = discoverCopilotSessions(copilotConversationsDir());
+        break;
     }
 
     if (sessions.length > 0) {
@@ -910,9 +928,12 @@ async function executeBackup(providersList, targetPath) {
             case 'gemini':
               detail = getGeminiSessionDetail(paths.gemini, session.id);
               break;
-            case 'kilocode':
-              detail = getKiloCodeSessionDetail(paths.kilocode, session.id);
-              break;
+          case 'kilocode':
+            detail = getKiloCodeSessionDetail(paths.kilocode, session.id);
+            break;
+          case 'copilot':
+            detail = getCopilotSessionDetail(copilotConversationsDir(), session.id);
+            break;
           }
 
           if (detail && detail.messages && detail.messages.length > 0) {

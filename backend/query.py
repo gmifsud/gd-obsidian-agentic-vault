@@ -11,12 +11,17 @@ from functools import lru_cache
 from pathlib import Path
 from datetime import datetime
 
+from knowledge_index import collect_vault_chunks, index_vault_notes, search_vault_notes
 from vault_layout import VaultLayout, VaultLayoutError, load_engine_vault
 
 # Force UTF-8 encoding for standard output/error on Windows to prevent UnicodeEncodeError
 if sys.platform.startswith("win"):
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+    # Reconfigure in place rather than replacing the streams, so importers (e.g. pytest capture) keep working.
+    for _stream in (sys.stdout, sys.stderr):
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, io.UnsupportedOperation):
+            pass
 
 # Optional imports with warning fallbacks
 try:
@@ -279,130 +284,73 @@ def reset_heartbeat():
     console.print("[bold green]HEARTBEAT.md has been reset. All items unchecked, timestamp removed.[/bold green]")
 
 
-@app.command()
-def embed():
-    """Update SQLite vector DB with markdown files from 25_Knowledge_Base."""
-    if TextEmbedding is None or np is None:
-        console.print("[bold red]Embedding error: fastembed or numpy is not installed![/bold red]")
-        console.print(EMBED_INSTALL_HINT)
-        raise typer.Exit(code=1)
-
-    if sqlite_vec is None:
-        console.print("[yellow]Notice: sqlite-vec is not installed. Vector search will use Python fallback.[/yellow]")
-        console.print(EMBED_INSTALL_HINT)
-
-    console.print("[bold blue]Updating SQLite vector DB with files from 25_Knowledge_Base...[/bold blue]")
-    
-    kb_dir = _vault().root / "25_Knowledge_Base"
-    if not kb_dir.exists():
-        console.print("[bold red]25_Knowledge_Base directory not found![/bold red]")
-        return
-        
-    md_files = list(kb_dir.rglob("*.md"))
-    md_files = [f for f in md_files if f.name != "README.md"]
-    
-    if not md_files:
-        console.print("[yellow]No markdown files found in 25_Knowledge_Base.[/yellow]")
-        return
-        
-    conn, vec_loaded = get_connection()
-    
-    console.print("Loading embedding model (fastembed)...")
+def _optional_embed_fn():
+    """Return a fastembed wrapper when fastembed is installed, or None for pure FTS5 mode."""
+    if TextEmbedding is None:
+        return None
     model = TextEmbedding()
-    
-    for fpath in md_files:
-        rel_path = fpath.relative_to(_vault().root).as_posix()
-        title = fpath.stem
-        try:
-            with open(fpath, "r", encoding="utf-8") as f:
-                content = f.read()
-                
-            embeddings = list(model.embed([content]))
-            embedding = embeddings[0]
-            emb_blob = np.array(embedding, dtype=np.float32).tobytes()
-            
-            conn.execute(
-                "INSERT OR REPLACE INTO documents (path, title, content, embedding) VALUES (?, ?, ?, ?)",
-                (rel_path, title, content, emb_blob)
-            )
-            
-            if vec_loaded:
-                conn.execute(
-                    "INSERT OR REPLACE INTO vec_documents (path, embedding) VALUES (?, ?)",
-                    (rel_path, emb_blob)
-                )
-                
-            console.print(f"  [green]✓[/green] Embedded: {rel_path}")
-        except Exception as e:
-            console.print(f"  [red]✗[/red] Failed to embed {rel_path}: {e}")
-            
-    conn.commit()
-    conn.close()
-    console.print("[bold green]Embedding update complete![/bold green]")
+
+    def _embed(texts: list[str]) -> list[list[float]]:
+        return [[float(x) for x in vec] for vec in model.embed(texts)]
+
+    return _embed
 
 
 @app.command()
-def search(query_text: str, limit: int = 5):
-    """Search the indexed knowledge base using vector similarity."""
-    if TextEmbedding is None or np is None:
-        console.print("[bold red]Search error: fastembed or numpy is not installed![/bold red]")
-        console.print(EMBED_INSTALL_HINT)
-        raise typer.Exit(code=1)
+def embed():
+    """Index all Right Hemisphere Markdown notes into SQLite FTS5 (and optional vectors)."""
+    layout = _vault()
+    chunks = collect_vault_chunks(layout)
+    if not chunks:
+        console.print("[yellow]No indexable Markdown chunks found in the Right Hemisphere.[/yellow]")
+        return
 
-    console.print(f"[bold blue]Searching for: '{query_text}'...[/bold blue]")
-    
-    conn, vec_loaded = get_connection()
-    
-    model = TextEmbedding()
-    embeddings = list(model.embed([query_text]))
-    query_vector = embeddings[0]
-    query_blob = np.array(query_vector, dtype=np.float32).tobytes()
-    
-    results = []
-    if vec_loaded:
-        try:
-            cursor = conn.execute("""
-                SELECT 
-                    d.path, 
-                    d.title, 
-                    sub.distance
-                FROM vec_documents v
-                JOIN documents d ON d.path = v.path
-                WHERE v.embedding MATCH ? AND k = ?
-                ORDER BY distance
-            """, (query_blob, limit))
-            results = cursor.fetchall()
-        except Exception as e:
-            console.print(f"[yellow]sqlite-vec query failed: {e}. Falling back to Python similarity.[/yellow]")
-            vec_loaded = False
-            
-    if not vec_loaded:
-        cursor = conn.execute("SELECT path, title, embedding FROM documents")
-        rows = cursor.fetchall()
-        
-        scored_rows = []
-        for path, title, emb_blob in rows:
-            doc_vector = np.frombuffer(emb_blob, dtype=np.float32)
-            dot_product = np.dot(query_vector, doc_vector)
-            norm_q = np.linalg.norm(query_vector)
-            norm_d = np.linalg.norm(doc_vector)
-            similarity = dot_product / (norm_q * norm_d) if norm_q > 0 and norm_d > 0 else 0.0
-            distance = 1.0 - similarity
-            scored_rows.append((path, title, distance))
-            
-        scored_rows.sort(key=lambda x: x[2])
-        results = scored_rows[:limit]
-        
-    conn.close()
-    
-    if not results:
+    embed_fn = _optional_embed_fn()
+    if embed_fn is None:
+        console.print("[yellow]fastembed not installed — building FTS5 lexical index only.[/yellow]")
+    else:
+        console.print("[bold blue]Building hybrid FTS5 + vector index with fastembed...[/bold blue]")
+
+    count = index_vault_notes(DB_PATH, chunks, embed_fn=embed_fn)
+    note_count = len({chunk.path for chunk in chunks})
+    console.print(
+        f"[bold green]Indexed {count} section chunks across {note_count} Right Hemisphere notes.[/bold green]"
+    )
+
+
+@app.command()
+def search(
+    query_text: str,
+    limit: int = 5,
+    directory: str = typer.Option(None, "--directory", "-d", help="Restrict search to one Vault directory."),
+    tag: str = typer.Option(None, "--tag", "-t", help="Restrict search to notes carrying this frontmatter tag."),
+):
+    """Search the indexed Right Hemisphere chunks via FTS5 BM25 and optional vector similarity."""
+    layout = _vault()
+    if not DB_PATH.is_file():
+        chunks = collect_vault_chunks(layout)
+        index_vault_notes(DB_PATH, chunks, embed_fn=_optional_embed_fn())
+
+    hits = search_vault_notes(
+        DB_PATH,
+        query_text,
+        directory=directory,
+        tag=tag,
+        limit=limit,
+        embed_fn=_optional_embed_fn(),
+    )
+    if not hits:
         console.print("[yellow]No matches found.[/yellow]")
         return
-        
-    console.print(f"\n[bold green]Top {len(results)} Matches:[/bold green]")
-    for path, title, score in results:
-        console.print(f"  * [bold]{title}[/bold] (Score: {score:.4f})")
-        console.print(f"    Path: [dim]{path}[/dim]")
+
+    console.print(f"\n[bold green]Top {len(hits)} Matches:[/bold green]")
+    for hit in hits:
+        console.print(
+            f"  * [bold]{hit.title}[/bold] :: [cyan]{hit.heading}[/cyan] (Score: {hit.score:.4f})"
+        )
+        console.print(f"    Path: [dim]{hit.path}[/dim]")
+        if hit.snippet:
+            console.print(f"    Snippet: {hit.snippet}")
 
 
 if __name__ == "__main__":

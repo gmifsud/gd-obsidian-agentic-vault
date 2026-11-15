@@ -21,8 +21,12 @@ from vault_layout import (
 
 # Force UTF-8 encoding for standard output/error on Windows to prevent UnicodeEncodeError
 if sys.platform.startswith("win"):
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+    # Reconfigure in place rather than replacing the streams, so importers (e.g. pytest capture) keep working.
+    for _stream in (sys.stdout, sys.stderr):
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, io.UnsupportedOperation):
+            pass
 from rich.console import Console
 from rich.table import Table
 
@@ -34,6 +38,7 @@ err_console = Console(stderr=True)
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BLUEPRINT_VAULT = REPO_ROOT / "vault"
 TEMPLATES_DIRECTORY = "80_Templates"
+STATIC_AGENT_INDEX_HEADER = "## Static Agent Index"
 # Prose files inside a Vault whose directory lists must agree with the layout.
 VAULT_PROSE_FILES = ["SOUL.md", "AGENT_INSTRUCTIONS.md"]
 # Prose file beside the Blueprint that describes it; checked only for the Blueprint.
@@ -67,9 +72,16 @@ def _count_files_in_dir(dir_path: Path) -> int:
     return sum(1 for _ in dir_path.rglob("*") if _.is_file())
 
 
+# Code is documentation, not navigation: wikilinks shown inside it are examples, not links.
+_FENCED_CODE = re.compile(r"```[\s\S]*?```")
+_INLINE_CODE = re.compile(r"`[^`\n]+`")
+_WIKILINK = re.compile(r"\[\[([^\]|]+?)(?:\|[^\]]*?)?\]\]")
+
+
 def _extract_wikilinks(text: str) -> list[str]:
-    """Extract all [[wikilink]] targets from text."""
-    return re.findall(r"\[\[([^\]|]+?)(?:\|[^\]]*?)?\]\]", text)
+    """Extract all [[wikilink]] targets from text, ignoring fenced and inline code."""
+    prose = _INLINE_CODE.sub("", _FENCED_CODE.sub("", text))
+    return _WIKILINK.findall(prose)
 
 
 def _resolve_wikilink(link_target: str, vault_dir: Path) -> bool:
@@ -112,6 +124,69 @@ def _validate_mocs(vault_dir: Path) -> list[dict]:
             "broken_links": broken,
         })
     return results
+
+
+def _append_to_moc_index(moc_path: Path, entry_line: str, link_target: str) -> bool:
+    """Insert ``entry_line`` under ``## Static Agent Index`` in ``moc_path`` unless ``[[link_target]]`` is already present."""
+    content = moc_path.read_text(encoding="utf-8")
+    if f"[[{link_target}]]" in content:
+        return False
+    normalized_entry = entry_line.strip()
+    if STATIC_AGENT_INDEX_HEADER in content:
+        content = content.replace(
+            STATIC_AGENT_INDEX_HEADER,
+            f"{STATIC_AGENT_INDEX_HEADER}\n{normalized_entry}",
+            1,
+        )
+    else:
+        content = content.rstrip() + f"\n\n{STATIC_AGENT_INDEX_HEADER}\n{normalized_entry}\n"
+    moc_path.write_text(content, encoding="utf-8")
+    return True
+
+
+def _check_frontmatter_problems(vault_dir: Path, notes: list[Path]) -> list[str]:
+    """Return human-readable errors for any Markdown note whose YAML frontmatter is malformed."""
+    problems: list[str] = []
+    for note in notes:
+        try:
+            raw = note.read_text(encoding="utf-8")
+        except OSError as exc:
+            problems.append(f"Could not read {note.name}: {exc}")
+            continue
+        normalized = raw.replace("\r\n", "\n")
+        if not normalized.startswith("---\n"):
+            continue
+        parts = normalized.split("---\n", 2)
+        rel = note.relative_to(vault_dir) if note.is_relative_to(vault_dir) else note
+        if len(parts) < 3:
+            problems.append(f"Unclosed YAML frontmatter fence in {rel}")
+            continue
+        try:
+            parsed = yaml.safe_load(parts[1])
+        except yaml.YAMLError as exc:
+            first_line = str(exc).splitlines()[0]
+            problems.append(f"Malformed YAML frontmatter in {rel}: {first_line}")
+            continue
+        if parsed is not None and not isinstance(parsed, dict):
+            problems.append(f"YAML frontmatter in {rel} must be a mapping, got {type(parsed).__name__}")
+    return problems
+
+
+def _collect_managed_notes(layout: VaultLayout) -> list[Path]:
+    """List Markdown notes inside managed Vault directories (excluding Templates placeholder files and dot-paths)."""
+    notes: list[Path] = []
+    for directory in layout.directories:
+        if directory == TEMPLATES_DIRECTORY:
+            continue
+        dir_path = layout.root / directory
+        if not dir_path.is_dir():
+            continue
+        for md_file in sorted(dir_path.rglob("*.md")):
+            rel_parts = md_file.relative_to(layout.root).parts
+            if any(part.startswith(".") for part in rel_parts):
+                continue
+            notes.append(md_file)
+    return notes
 
 
 def _get_last_rolling_log_timestamp(vault_dir: Path) -> str | None:
@@ -250,18 +325,11 @@ def update_moc(moc_filename: str, title: str, doc_reference: str):
         console.print(f"[bold red]MOC not found: {full_path}[/bold red]")
         raise typer.Exit(code=1)
         
-    with open(full_path, "r+", encoding="utf-8") as f:
-        content = f.read()
-        
-        # Check if entry already exists to prevent duplicates
-        if f"[[{doc_reference}]]" in content or title in content:
-            console.print(f"[bold yellow]Reference already exists in MOC: {title}[/bold yellow]")
-            return
-            
-        # Append the new link
-        entry = f"\n- [[{doc_reference}]] - {title}"
-        f.write(entry)
-        
+    entry = f"- [[{doc_reference}]] - {title}"
+    if not _append_to_moc_index(full_path, entry, doc_reference):
+        console.print(f"[bold yellow]Reference already exists in MOC: {title}[/bold yellow]")
+        return
+
     console.print(f"[bold green]Successfully appended {title} to {moc_filename}[/bold green]")
 
 @app.command()
@@ -318,29 +386,46 @@ def auto_update_moc(file_path: str):
     elif directory == "30_Git":
         workflow_name = metadata.get("workflow_name", "unknown")
         entry += f" | workflow_name: {workflow_name}"
+    elif directory == "25_Knowledge_Base":
+        doc_type = metadata.get("type", "knowledge")
+        topic = metadata.get("topic", file_name)
+        entry += f" | type: {doc_type} | topic: {topic}"
+    elif directory == "35_Sessions":
+        harness = metadata.get("harness", "unknown")
+        topic = metadata.get("topic", "unknown")
+        entry += f" | harness: {harness} | topic: {topic}"
 
     if not moc_path.exists():
         console.print(f"[bold red]MOC file not found: {moc_path}[/bold red]")
         raise typer.Exit(code=1)
 
-    with open(moc_path, "r", encoding="utf-8") as f:
-        moc_content = f.read()
-
-    # Prevent duplicates
-    if f"[[{file_name}]]" in moc_content:
+    if not _append_to_moc_index(moc_path, entry, file_name):
         console.print(f"Entry for {file_name} already exists in {moc_path.name}.")
         return
 
-    index_header = "## Static Agent Index"
-    if index_header in moc_content:
-        moc_content = moc_content.replace(index_header, f"{index_header}\n{entry}")
-    else:
-        moc_content += f"\n{index_header}\n{entry}\n"
-
-    with open(moc_path, "w", encoding="utf-8") as f:
-        f.write(moc_content)
-
     console.print(f"[bold green]Successfully updated {moc_path.name} with {file_name}[/bold green]")
+
+
+@app.command()
+def catalogue_copilot():
+    """Write a short catalogue note for each Obsidian Copilot conversation.
+
+    Reads copilot/copilot-conversations/ only. The transcript stays in the
+    plugin folder. Skills and custom prompts are not read. A conversation
+    that already has a catalogue note is skipped.
+    """
+    from session_catalogue import catalogue_copilot_conversations
+
+    layout = _vault()
+    result = catalogue_copilot_conversations(layout)
+    for problem in result.problems:
+        err_console.print(problem, style="bold red", markup=False)
+    for source in result.skipped:
+        console.print(f"Already catalogued: {source}")
+    for note in result.written:
+        console.print(f"[bold green]Catalogued:[/bold green] {note.relative_to(layout.root).as_posix()}")
+    if result.problems and not result.written:
+        raise typer.Exit(code=1)
 
 
 # ---------- NEW COMMANDS ----------
@@ -460,10 +545,18 @@ def validate():
         for moc in moc_results
         for bl in moc["broken_links"]
     ]
-    issues = layout_issues + link_issues
+
+    # 4. YAML frontmatter syntax checks across managed notes
+    frontmatter_issues = _check_frontmatter_problems(layout.root, _collect_managed_notes(layout))
+    issues = layout_issues + link_issues + frontmatter_issues
 
     # --- Output: one section per kind of check, each with its own verdict ---
-    for title, section_issues in (("Layout checks", layout_issues), ("MOC link checks", link_issues)):
+    sections = (
+        ("Layout checks", layout_issues),
+        ("MOC link checks", link_issues),
+        ("Frontmatter checks", frontmatter_issues),
+    )
+    for title, section_issues in sections:
         if section_issues:
             console.print(f"[bold red]FAIL: {title}[/bold red]")
             for issue in section_issues:

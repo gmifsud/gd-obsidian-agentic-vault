@@ -102,5 +102,6 @@ test('reads the Blueprint layout', () => {
   const layout = readVaultLayout(blueprint);
 
   assert.equal(layout.zoneOf('90_Assets/x.png'), 'assets');
+  assert.deepEqual(layout.unmanaged, ['copilot']);
   assert.equal(layout.isReadable('Connections/Tokens'), false);
 });

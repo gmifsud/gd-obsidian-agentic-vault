@@ -24,7 +24,7 @@ Agents check a path before creating or editing it. From the repository root:
 
 Exit 0 means the write is allowed, and the command prints the reason. Exit 1 means it is refused. The same command is the check for a person who is unsure where a note belongs.
 
-The Engine refuses anything outside a directory the layout declares. It also refuses dot-files and dot-directories at any depth, the unmanaged directories `copilot/` and `Connections/`, and the read-only system files.
+The Engine refuses anything outside a directory the layout declares. It also refuses dot-files and dot-directories at any depth, the unmanaged directory `copilot/`, and the read-only system files.
 
 ### Put a note in the directory it belongs to
 
@@ -38,6 +38,7 @@ The Engine refuses anything outside a directory the layout declares. It also ref
 | `20_DevOps/` | Right | Yes | `DevOps_MOC.md` |
 | `25_Knowledge_Base/` | Right | Yes | — |
 | `30_Git/` | Right | Yes | `Git_MOC.md` |
+| `35_Sessions/` | Right | Yes | `Sessions_MOC.md` |
 | `40_Agent_Skills/` | Right | Yes | — |
 | `50_Databases/` | Right | Yes | — |
 | `60_Canvas_Maps/` | Right | Yes | — |
@@ -85,7 +86,7 @@ The Control Panel still serves a note whose properties do not parse, with empty 
 
 ### Keep other tools' files out of the notes
 
-`copilot/` and `Connections/` are unmanaged: the Engine never writes there and the Control Panel's API never reads there. A local `npm run build` still bundles Markdown files inside those two directories, because the static fallback globs the whole Vault, so keep secrets out of them. Dot-directories and dot-files are ignored at any depth, which covers `.obsidian/`, `.git/` and tool directories such as `.cursor/`. The bundler already skips dot-directories.
+`copilot/` is unmanaged: the Obsidian Copilot plugin creates it and keeps writing there, and the Engine never writes there. The Control Panel's API does not list it as Vault notes. The Sessions page reads `copilot/copilot-conversations/` only, and `vault_manager.py catalogue-copilot` writes a short note per conversation into `35_Sessions/`. The transcript stays in the plugin folder. Skills and custom prompts in that folder are plugin configuration and are left alone. A local `npm run build` still bundles every Markdown file under `copilot/`, because the static fallback globs the whole Vault, so keep secrets out of it. Dot-directories and dot-files are ignored at any depth, which covers `.obsidian/`, `.git/` and tool directories such as `.cursor/`. The bundler already skips dot-directories.
 
 Symlinks need care. A link inside a declared directory is followed, so the Control Panel reads the other tree and a local build of the Control Panel bundles it. The Blueprint previously linked the Knowledge Vault this way, and that vault now stays separate until it has had its own analysis. Remove a link by the link itself, for example `cmd /c rmdir` on Windows. A recursive delete follows the link and removes the target's contents.
 

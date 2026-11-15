@@ -24,6 +24,7 @@ These directories contain structured knowledge, SOPs, and documentation.
 - `20_DevOps/`
 - `25_Knowledge_Base/`
 - `30_Git/`
+- `35_Sessions/`
 - `40_Agent_Skills/`
 - `50_Databases/`
 - `60_Canvas_Maps/`

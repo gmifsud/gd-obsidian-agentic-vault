@@ -456,7 +456,7 @@ The MOC entries for the Left Hemisphere directories and `00_MOCs` were not discu
 | `API_BASE` in `vault.ts` | Done (section 8.5); `npm run lint` passes. Session backup itself has not been exercised. |
 | Dot-directories nested inside a declared directory | Decided and done (section 8.6): ignored at any depth, by the Control Panel and the Engine. |
 | Control Panel in a browser | First render of seven screens checked by screenshot (section 8.7). Nothing was clicked; Sessions and Orchestrator were not opened. |
-| Static bundle ignores the layout | Found in section 8.7: a local `npm run build` bundles notes from `copilot/` and `Connections/`. Not decided. |
+| Static bundle ignores the layout | Found in section 8.7. `Connections/` has since been removed (section 8.9). A local build still bundles `copilot/`. Not decided. |
 | Editor hook for direct agent edits | Deferred until the build has been tested (decision 8) |
 | The ten broken MOC links | Left for candidate 4 (decision 14) |
 | Analysis of the Knowledge Vault | Separate piece of work (decision 15) |
@@ -599,6 +599,7 @@ Nothing was clicked: the Left Hemisphere and Assets tabs, the Vault Explorer, Se
 
 - The static bundle does not follow the layout. A local build includes 31 notes from `copilot/`, one from `Connections/` and the Left Hemisphere notes, and the server serves those bundle files to anyone who can reach its port. The published site is not affected in the same way, because it is built from tracked files only and both directories are untracked. Dot-directories are already left out by the bundler.
 - The Dashboard has no card for the Assets Zone; its one file is counted in the total only.
+- Cosmetic, and older than this work: system files on the Dashboard carry a trailing slash (`CLAUDE.md/`); the Dashboard counts five templates where the Templates page shows six cards; a link written as `[[target|label]]` renders as `target|label`.
 
 ### 8.8 Symlinks into the Knowledge Vault removed
 
@@ -627,5 +628,22 @@ The first two were made by the `lns-directories` Obsidian plugin; eight further 
 
 `validate`: layout checks PASS; MOC link checks FAIL on the same ten links. 53 pytest and 14 Node tests pass.
 
-Two things in earlier sections are now moot for the Blueprint but stay in the code: the tolerance for invalid frontmatter (8.5) and the exclusion of `#` paths from the bundle (8.7). The section 8.7 finding about `copilot/` and the root `Connections/` directory still stands: both are real directories, not links, and a local build still bundles their 32 notes.
-- Cosmetic, and older than this work: system files on the Dashboard carry a trailing slash (`CLAUDE.md/`); the Dashboard counts five templates where the Templates page shows six cards; a link written as `[[target|label]]` renders as `target|label`.
+Two things in earlier sections are now moot for the Blueprint but stay in the code: the tolerance for invalid frontmatter (8.5) and the exclusion of `#` paths from the bundle (8.7). The section 8.7 finding about `copilot/` still stands: it is a real directory, and a local build still bundles it. The root `Connections/` directory was removed afterwards (section 8.9).
+
+### 8.9 `Connections/` removed from the layout
+
+The root `vault/Connections/` directory was removed by hand. It had been a real directory, listed as unmanaged. The name was then removed from `vault/vault.config.yaml` and from the prose that restates the layout (`.cursorrules`, `vault/SOUL.md`, `vault/README.md`, `README.md`, `CONTEXT.md`). `copilot/` stays unmanaged: it holds the Obsidian Copilot plugin's chats, prompts and skills, and it is not taken over by the Engine.
+
+A path under `Connections/` is now an ordinary undeclared path: `may-write` refuses it, and `validate` will report the directory if it is created again without being added to the layout.
+
+### 8.10 Copilot conversations are catalogued, and the plugin keeps the transcripts
+
+**Decision.** The Vault catalogues harness responses. Obsidian Copilot is the first harness. The plugin creates `vault/copilot/` and keeps writing it, so that folder stays unmanaged. Skills and custom prompts in it are plugin configuration and are not catalogued.
+
+**What was built.**
+
+- `35_Sessions/` is a Right Hemisphere directory, indexed by `Sessions_MOC.md`. A catalogue note records the harness, the topic, the model, the date, and the path of the transcript. It does not contain the transcript.
+- `vault_manager.py catalogue-copilot` reads `copilot/copilot-conversations/` only and writes a note for each conversation that does not already have one. The two existing conversations were catalogued. A second run skipped both.
+- The Sessions page reads that same conversations folder, alongside Claude, Codex, Cursor, Gemini, and Kilo. The other harnesses are browsed from their own stores and are not copied into `35_Sessions/` unless a later command says so.
+
+Layout checks pass. `Sessions_MOC.md` resolves its two links. The ten previously known broken MOC links are unchanged. 57 pytest and 17 Node tests pass.

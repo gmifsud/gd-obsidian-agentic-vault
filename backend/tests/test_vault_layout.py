@@ -305,3 +305,5 @@ def test_blueprint_layout_loads():
     assert blueprint.may_agent_write("01_Journal/Reviews/review.md").allowed
     assert not blueprint.may_agent_write("01_Journal/entry.md").allowed
     assert blueprint.zone_of("90_Assets/x.png") == "assets"
+    assert blueprint.unmanaged == ("copilot",)
+    assert not blueprint.may_agent_write("Connections/note.md").allowed

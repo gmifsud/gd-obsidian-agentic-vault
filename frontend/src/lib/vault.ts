@@ -194,7 +194,7 @@ export async function runOrchestratorCommand(command: string, args: string[]): P
 // Session Explorer API Layer
 // ============================================
 
-export type SessionProvider = 'claude' | 'codex' | 'cursor' | 'gemini' | 'kilocode';
+export type SessionProvider = 'claude' | 'codex' | 'cursor' | 'gemini' | 'kilocode' | 'copilot';
 
 export interface SessionSummary {
   id: string;

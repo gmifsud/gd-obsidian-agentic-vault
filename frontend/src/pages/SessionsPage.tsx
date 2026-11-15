@@ -49,9 +49,16 @@ const PROVIDER_META: Record<string, { label: string; color: string; bgColor: str
     borderColor: 'border-rose-800/50',
     icon: '🔴',
   },
+  copilot: {
+    label: 'Copilot',
+    color: 'text-cyan-400',
+    bgColor: 'bg-cyan-950/30',
+    borderColor: 'border-cyan-800/50',
+    icon: '💬',
+  },
 };
 
-const ALL_PROVIDERS: SessionProvider[] = ['claude', 'codex', 'cursor', 'gemini', 'kilocode'];
+const ALL_PROVIDERS: SessionProvider[] = ['claude', 'codex', 'cursor', 'gemini', 'kilocode', 'copilot'];
 
 // ============================================
 // Helpers
@@ -438,7 +445,7 @@ export function SessionsPage() {
           AI Session Explorer
         </h1>
         <p className="text-[var(--color-text-secondary)]">
-          Browse and search coding sessions from Claude, Codex, Cursor, Gemini, and Kilo Code
+          Browse and search sessions from Claude, Codex, Cursor, Gemini, Kilo Code, and Obsidian Copilot
         </p>
       </div>
 

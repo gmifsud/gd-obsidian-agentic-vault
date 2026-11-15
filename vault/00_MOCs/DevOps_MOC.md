@@ -6,12 +6,10 @@ agent_summary: "Index of infrastructure, CI/CD pipelines, and runbooks."
 # DevOps MOC
 
 ## CI/CD Pipelines
-- [[20_DevOps/github-actions-deploy|GitHub Actions Deploy]] - `environment: prod`
-- [[20_DevOps/gitlab-ci-test|GitLab CI Testing]] - `environment: dev`
+- [[20_DevOps/Pipe - CI Build and Deploy|CI Build and Deploy]] - `environment: all`
 
 ## Infrastructure
-- [[20_DevOps/terraform-aws-core|Terraform AWS Core]] - `criticality: high`
-- [[20_DevOps/k8s-cluster-config|Kubernetes Cluster Config]] - `criticality: high`
+- [[20_DevOps/Infra - Kubernetes Cluster|Kubernetes Cluster]] - `environment: prod`
 
 ## Dataview Auto-Index (For Human Readers)
 ```dataview

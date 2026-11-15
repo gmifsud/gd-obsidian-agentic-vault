@@ -6,9 +6,7 @@ agent_summary: "Index of all tracked codebases and services."
 # Repositories MOC
 
 ## Active Services
-- [[10_Repositories/api-gateway|API Gateway]] - `tech_stack: [Node.js, Express]`
-- [[10_Repositories/auth-service|Auth Service]] - `tech_stack: [Go, Redis]`
-- [[10_Repositories/frontend-web|Frontend Web]] - `tech_stack: [React, TypeScript]`
+_No repositories are tracked yet. Create one with `inject-template Repository_Template.md 10_Repositories/<name>.md`; it is then listed under the Static Agent Index below._
 
 ## Dataview Auto-Index (For Human Readers)
 ```dataview
@@ -18,4 +16,6 @@ WHERE type = "repository"
 ```
 
 ## Agent Scraping Guide
-Agents: Parse the bulleted list under "Active Services" using regex `\[\[(.*?)\]\]` to extract file paths. The inline code blocks provide immediate context filtering without opening the file.
+Agents: Parse the bulleted list under "Static Agent Index" using regex `\[\[(.*?)\]\]` to extract file paths. The pipe-separated fields provide immediate context filtering without opening the file.
+
+## Static Agent Index
